@@ -1,5 +1,4 @@
-turn(white).   % white or black, always starts white
-bottom(white). % white or black
+turn(white).   % white or black; white always start
 
 % Raw board initial representation: good enough for low level computations.
 % Black Rook  . Black kNight  . Black Bishop  . Black Queen   . Black King    . Black Bishop  . Black kNight  . Black Rook    .
@@ -16,6 +15,12 @@ cell(1, 1, wr). cell(2, 1, wn). cell(3, 1, wb). cell(4, 1, wq). cell(5, 1, wk). 
 % White Rook  . White kNight  . White Bishop  . White Queen   . White King    . White Bishop  . White kNight  . White Rook    .
 %     a       .       b       .       c       .       d       .       e       .       f       .       g       .       h       .
 
+print_board_for_white() :-
+print_board_for_black() :-
+print_board() :-
+  (bottom(white), print_board_for_white());
+  (bottom(black), print_board_for_balck()).
+
 % Aliases for canonical horizontal coordinates
 cell(a, _, _) :- cell(1, _, _).
 cell(b, _, _) :- cell(2, _, _).
@@ -26,18 +31,22 @@ cell(f, _, _) :- cell(6, _, _).
 cell(g, _, _) :- cell(7, _, _).
 cell(h, _, _) :- cell(8, _, _).
 
+% I think I need to keep track of some things...
+%%last_move(_, _, _, _, _)
+%%wk_moved(false)
+%%bk_moved(false)
+
+% Maybe these can be useful
+is_white(PIECE) :- PIECE = (wp; wr; wn; wb; wq; wk).
+is_black(PIECE) :- PIECE = (bp; br; bn; bb; bq; bk).
+is_legal(PIECE) :- is_white(PIECE); is_balck(PIECE).
+
 % Pawn promotion rules
-promote()
-
-% It can be useful to keep track of some things...
-last_move(_, _, _, _, _)
-wk_moved(false)
-bk_moved(false)
-
+%%promote()
 
 % move(+PAWN, +BEFORE_X, +BEFORE_Y, +AFTER_X, +AFTER_Y)
 move(PAWN, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  cell(BEFORE_X, BEFORE_Y, PAWN).  % is there really a pawn of the right color in the 'before' position?
+  cell(BEFORE_X, BEFORE_Y, PAWN).                                      % is there a pawn of the right color in the 'before' position?
   ((PAWN = wp), cell() (turn(white))) ; ((PAWN = bp), (turn(black))),  % is it really a pawn what you're trying to move? And is it of the right color?
   
   
