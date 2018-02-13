@@ -39,29 +39,35 @@ is_enemy(PIECE) :-
   (turn(white), is_black(PIECE));
   (turn(black), is_white(PIECE)).
 
+is_pawn_starting_row(Y) :- 
+  (turn(white), Y = 2);
+  (turn(black), Y = 7).
+  
 move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  % Moving forward to an empty cell (it can move two cells ahead if the pawn is at its starting row and the two cells ahead are both empty):
   (
     (
       (adjacent_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, e));
-      (two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), adjacent_ahead(BEFORE_X, BEFORE_Y, ADJACENT_AHEAD_X, ADJACENT_AHEAD_Y), cell(ADJACENT_AHEAD_X, ADJACENT_AHEAD_Y, e), cell(AFTER_X, AFTER_Y, e))
+      (two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), is_pawn_starting_row(BEFORE_Y), adjacent_ahead(BEFORE_X, BEFORE_Y, ADJACENT_AHEAD_X, ADJACENT_AHEAD_Y), cell(ADJACENT_AHEAD_X, ADJACENT_AHEAD_Y, e), cell(AFTER_X, AFTER_Y, e))
     ),
     retract(cell(BEFORE_X, BEFORE_Y, PAWN)), assert(cell(BEFORE_X, BEFORE_Y, e)),
-    retract(cell(AFTER_X, AFTER_Y, e)), assert(cell(AFTER_X, AFTER_Y, PAWN)),
-    retract(turn(white)), assert(turn(black))
+    retract(cell(AFTER_X, AFTER_Y, e)), assert(cell(AFTER_X, AFTER_Y, PAWN))
   );
+  % Moving forward diagonally if there's an enemy piece in the "AFTER" cell:
   (
     adjacent_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, SOME_PIECE), is_enemy(SOME_PIECE),
     retract(cell(BEFORE_X, BEFORE_Y, PAWN)), assert(cell(BEFORE_X, BEFORE_Y, e)),
-    retract(cell(AFTER_X, AFTER_Y, SOME_PIECE)), assert(cell(AFTER_X, AFTER_Y, PAWN)),
-    retract(turn(white)), assert(turn(black))
+    retract(cell(AFTER_X, AFTER_Y, SOME_PIECE)), assert(cell(AFTER_X, AFTER_Y, PAWN))
   ).
 
 move(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   (
     turn(white),
-    (PIECE = wp, cell(BEFORE_X, BEFORE_Y, wp), move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y))
+    (PIECE = wp, cell(BEFORE_X, BEFORE_Y, wp), move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y)),
+    retract(turn(white)), assert(turn(black))
   );
   (
     turn(black),
-    (PIECE = bp, cell(BEFORE_X, BEFORE_Y, bp), move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y))
+    (PIECE = bp, cell(BEFORE_X, BEFORE_Y, bp), move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y)),
+    retract(turn(black)), assert(turn(white))
   ).
