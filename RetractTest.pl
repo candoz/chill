@@ -69,7 +69,7 @@ move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   );
   % Moving forward diagonally if there's an enemy piece in the "AFTER" cell:
   (
-    adjacent_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, SOME_PIECE), is_enemy(SOME_PIECE),
+    contiguous_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, SOME_PIECE), enemy(SOME_PIECE),
     retract(cell(BEFORE_X, BEFORE_Y, PAWN)), assert(cell(BEFORE_X, BEFORE_Y, e)),
     retract(cell(AFTER_X, AFTER_Y, SOME_PIECE)), assert(cell(AFTER_X, AFTER_Y, PAWN))
   ).
