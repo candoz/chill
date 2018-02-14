@@ -1,7 +1,19 @@
+% turn(?COLOR)
 turn(white).
 
-change_turn :- retract(turn(white)), assert(turn(black)), !.  % red cut
-change_turn :- retract(turn(black)), assert(turn(white)), !.  % green cut
+% next_turn(?THIS, ?NEXT)
+next_turn(white, black).
+next_turn(black, white).
+
+% change_turn
+change_turn :-
+  next_turn(THIS, NEXT),
+  retract(turn(THIS)),
+  assert(turn(NEXT)),
+  !.  % red cut!
+%%% old, alternative implementation without next_turn/2 %%% 
+%change_turn :- retract(turn(white)), assert(turn(black)), !.  % red cut
+%change_turn :- retract(turn(black)), assert(turn(white)), !.  % green cut
 
 cell(1, 8, br). cell(2, 8, bn). cell(3, 8, bb). cell(4, 8, bq). cell(5, 8, bk). cell(6, 8, bb). cell(7, 8, bn). cell(8, 8, br). % 8
 cell(1, 7, bp). cell(2, 7, bp). cell(3, 7, bp). cell(4, 7, bp). cell(5, 7, bp). cell(6, 7, bp). cell(7, 7, bp). cell(8, 7, bp). % 7
@@ -13,14 +25,17 @@ cell(1, 2, wp). cell(2, 2, wp). cell(3, 2, wp). cell(4, 2, wp). cell(5, 2, wp). 
 cell(1, 1, wr). cell(2, 1, wn). cell(3, 1, wb). cell(4, 1, wq). cell(5, 1, wk). cell(6, 1, wb). cell(7, 1, wn). cell(8, 1, wr). % 1
 
 contiguous_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
-  ((turn(white), AFTER_Y is BEFORE_Y+1) ; (turn(black), AFTER_Y is BEFORE_Y-1)),
-  AFTER_X is BEFORE_X.
+  AFTER_X is BEFORE_X,
+  ((turn(white), AFTER_Y is BEFORE_Y+1) ; (turn(black), AFTER_Y is BEFORE_Y-1)).
+
 contiguous_behind(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   ((turn(white), AFTER_Y is BEFORE_Y-1) ; (turn(black), AFTER_Y is BEFORE_Y+1)),
   AFTER_X is BEFORE_X.
+
 contiguous_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   ((turn(white), AFTER_X is BEFORE_X+1) ; (turn(black), AFTER_X is BEFORE_X-1)),
   AFTER_Y is BEFORE_Y.
+
 contiguous_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   ((turn(white), AFTER_X is BEFORE_X-1) ; (turn(black), AFTER_X is BEFORE_X+1)),
   AFTER_Y is BEFORE_Y.
@@ -28,20 +43,25 @@ contiguous_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
 two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   ((turn(white), AFTER_Y is BEFORE_Y+2) ; (turn(black), AFTER_Y is BEFORE_Y-2)),
   AFTER_X is BEFORE_X.
+
 two_cells_behind(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   ((turn(white), AFTER_Y is BEFORE_Y-2) ; (turn(black), AFTER_Y is BEFORE_Y+2)),
   AFTER_X is BEFORE_X.
+
 two_cells_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   ((turn(white), AFTER_X is BEFORE_X+2) ; (turn(black), AFTER_X is BEFORE_X-2)),
   AFTER_Y is BEFORE_Y.
+
 two_cells_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   ((turn(white), AFTER_X is BEFORE_X-2) ; (turn(black), AFTER_X is BEFORE_X+2)),
   AFTER_Y is BEFORE_Y.
 
 contiguous_diagonal_ahead_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   (turn(white), AFTER_X is BEFORE_X+1, AFTER_Y is BEFORE_Y+1) ; (turn(black), AFTER_X is BEFORE_X-1, AFTER_Y is BEFORE_Y-1).
+
 contiguous_diagonal_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   (turn(white), AFTER_X is BEFORE_X-1, AFTER_Y is BEFORE_Y+1) ; (turn(black), AFTER_X is BEFORE_X+1, AFTER_Y is BEFORE_Y-1).
+
 contiguous_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   contiguous_diagonal_ahead_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) ; contiguous_diagonal_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y).
 
