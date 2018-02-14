@@ -1,5 +1,8 @@
 turn(white).
 
+change_turn :- retract(turn(white)), assert(turn(black)), !.  % red cut
+change_turn :- retract(turn(black)), assert(turn(white)), !.  % green cut
+
 cell(1, 8, br). cell(2, 8, bn). cell(3, 8, bb). cell(4, 8, bq). cell(5, 8, bk). cell(6, 8, bb). cell(7, 8, bn). cell(8, 8, br). % 8
 cell(1, 7, bp). cell(2, 7, bp). cell(3, 7, bp). cell(4, 7, bp). cell(5, 7, bp). cell(6, 7, bp). cell(7, 7, bp). cell(8, 7, bp). % 7
 cell(1, 6, e) . cell(2, 6, e) . cell(3, 6, e) . cell(4, 6, e) . cell(5, 6, e) . cell(6, 6, e) . cell(7, 6, e) . cell(8, 6, e) . % 6  (Empty row)
@@ -44,28 +47,31 @@ contiguous_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
 
 
 % Describes the typical "L-movement" that only a knight can do.
-el_movement(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  (
+%el_movement(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
 
-black(PIECE) :- PIECE = (bp; br; bn; bb; bq; bk).
-white(PIECE) :- PIECE = (wp; wr; wn; wb; wq; wk).
+%memberchk(+Term, ?List) -> used just to check if an element is in a list, famous alternative to member(?Term, ?List). 
+memberchk(X,[X|_]) :- !.
+memberchk(X,[_|T]):- memberchk(X,T).
+
+black(PIECE) :- memberchk(PIECE, [bp,br,bn,bb,bq,bk]).
+white(PIECE) :- memberchk(PIECE, [bp,br,bn,bb,bq,bk]).
 enemy(PIECE) :- 
-  (turn(white), is_black(PIECE));
-  (turn(black), is_white(PIECE)).
+  (turn(white), black(PIECE));
+  (turn(black), white(PIECE)).
 
 pawn_starting_row(Y) :- 
   (turn(white), Y = 2);
   (turn(black), Y = 7).
+
+move_for_real(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  retract(cell(BEFORE_X, BEFORE_Y, PIECE)), assert(cell(BEFORE_X, BEFORE_Y, e)),
+  retract(cell(AFTER_X, AFTER_Y, _)), assert(cell(AFTER_X, AFTER_Y, PIECE)).
   
-move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+legal_pawn_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   % Moving forward to an empty cell (it can move two cells ahead if the pawn is at its starting row and the two cells ahead are both empty):
   (
-    (
-      (contiguous_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, e));
-      (two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), pawn_starting_row(BEFORE_Y), contiguous_ahead(BEFORE_X, BEFORE_Y, CONTIGUOUS_AHEAD_X, CONTIGUOUS_AHEAD_Y), cell(CONTIGUOUS_AHEAD_X, CONTIGUOUS_AHEAD_Y, e), cell(AFTER_X, AFTER_Y, e))
-    ),
-    retract(cell(BEFORE_X, BEFORE_Y, PAWN)), assert(cell(BEFORE_X, BEFORE_Y, e)),
-    retract(cell(AFTER_X, AFTER_Y, e)), assert(cell(AFTER_X, AFTER_Y, PAWN))
+    (contiguous_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, e));
+    (two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), pawn_starting_row(BEFORE_Y), contiguous_ahead(BEFORE_X, BEFORE_Y, CONTIGUOUS_AHEAD_X, CONTIGUOUS_AHEAD_Y), cell(CONTIGUOUS_AHEAD_X, CONTIGUOUS_AHEAD_Y, e), cell(AFTER_X, AFTER_Y, e))
   );
   % Moving forward diagonally if there's an enemy piece in the "AFTER" cell:
   (
@@ -80,11 +86,15 @@ move_knight(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
 move(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   (
     turn(white),
-    (PIECE = wp, cell(BEFORE_X, BEFORE_Y, wp), move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y)),
-    retract(turn(white)), assert(turn(black))
+    (
+      (PIECE = wp, cell(BEFORE_X, BEFORE_Y, wp), legal_pawn_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = wn, cell(BEFORE_X, BEFORE_Y, wn), legal_knight_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y))
+    ),
+    move_for_real(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y),
+    change_turn,
+    !
   );
   (
-    turn(black),
-    (PIECE = bp, cell(BEFORE_X, BEFORE_Y, bp), move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y)),
+    turn(black), PIECE = bp, cell(BEFORE_X, BEFORE_Y, bp), move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y),
     retract(turn(black)), assert(turn(white))
   ).
