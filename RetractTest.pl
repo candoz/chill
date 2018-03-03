@@ -24,52 +24,85 @@ cell(1, 3, e) . cell(2, 3, e) . cell(3, 3, e) . cell(4, 3, e) . cell(5, 3, e) . 
 cell(1, 2, wp). cell(2, 2, wp). cell(3, 2, wp). cell(4, 2, wp). cell(5, 2, wp). cell(6, 2, wp). cell(7, 2, wp). cell(8, 2, wp). % 2
 cell(1, 1, wr). cell(2, 1, wn). cell(3, 1, wb). cell(4, 1, wq). cell(5, 1, wk). cell(6, 1, wb). cell(7, 1, wn). cell(8, 1, wr). % 1
 
-contiguous_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
+
+%%% Generic, reusable direction predicates %%%
+
+% one_cell_ahead(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
+one_cell_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   AFTER_X is BEFORE_X,
   ((turn(white), AFTER_Y is BEFORE_Y+1) ; (turn(black), AFTER_Y is BEFORE_Y-1)).
 
-contiguous_behind(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
-  ((turn(white), AFTER_Y is BEFORE_Y-1) ; (turn(black), AFTER_Y is BEFORE_Y+1)),
-  AFTER_X is BEFORE_X.
+% one_cell_behind(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
+one_cell_behind(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
+  AFTER_X is BEFORE_X,
+  ((turn(white), AFTER_Y is BEFORE_Y-1) ; (turn(black), AFTER_Y is BEFORE_Y+1)).
 
-contiguous_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
+% one_cell_right(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
+one_cell_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   ((turn(white), AFTER_X is BEFORE_X+1) ; (turn(black), AFTER_X is BEFORE_X-1)),
   AFTER_Y is BEFORE_Y.
 
-contiguous_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
+% one_cell_left(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
+one_cell_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   ((turn(white), AFTER_X is BEFORE_X-1) ; (turn(black), AFTER_X is BEFORE_X+1)),
   AFTER_Y is BEFORE_Y.
 
+
+%%% Ad-hoc direction predicates %%%
+
+% two_cells_ahead(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   ((turn(white), AFTER_Y is BEFORE_Y+2) ; (turn(black), AFTER_Y is BEFORE_Y-2)),
   AFTER_X is BEFORE_X.
 
+% two_cells_behind(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 two_cells_behind(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   ((turn(white), AFTER_Y is BEFORE_Y-2) ; (turn(black), AFTER_Y is BEFORE_Y+2)),
   AFTER_X is BEFORE_X.
 
+% two_cells_right(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 two_cells_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   ((turn(white), AFTER_X is BEFORE_X+2) ; (turn(black), AFTER_X is BEFORE_X-2)),
   AFTER_Y is BEFORE_Y.
 
+% two_cells_left(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 two_cells_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   ((turn(white), AFTER_X is BEFORE_X-2) ; (turn(black), AFTER_X is BEFORE_X+2)),
   AFTER_Y is BEFORE_Y.
 
-contiguous_diagonal_ahead_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+% one_cell_ahead_right(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
+one_cell_ahead_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   (turn(white), AFTER_X is BEFORE_X+1, AFTER_Y is BEFORE_Y+1) ; (turn(black), AFTER_X is BEFORE_X-1, AFTER_Y is BEFORE_Y-1).
 
-contiguous_diagonal_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+% one_cell_ahead_left(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
+one_cell_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   (turn(white), AFTER_X is BEFORE_X-1, AFTER_Y is BEFORE_Y+1) ; (turn(black), AFTER_X is BEFORE_X+1, AFTER_Y is BEFORE_Y-1).
 
-contiguous_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  contiguous_diagonal_ahead_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) ; contiguous_diagonal_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y).
+% one_cell_diagonal_ahead(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
+one_cell_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  one_cell_ahead_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) ; one_cell_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y).
+
+% l_pattern(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y)
+l_pattern(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  (
+    two_cells_ahead(BEFORE_X, BEFORE_Y, A, B),
+    (one_cell_right(A, B, AFTER_X, AFTER_Y); one_cell_left(A, B, AFTER_X, AFTER_Y))
+  );
+  (
+    two_cells_behind(BEFORE_X, BEFORE_Y, A, B),
+    (one_cell_right(A, B, AFTER_X, AFTER_Y); one_cell_left(A, B, AFTER_X, AFTER_Y))
+  );
+  (
+    two_cells_right(BEFORE_X, BEFORE_Y, A, B),
+    (one_cell_ahead(A, B, AFTER_X, AFTER_Y); one_cell_behind(A, B, AFTER_X, AFTER_Y))
+  );
+  (
+    two_cells_left(BEFORE_X, BEFORE_Y, A, B),
+    (one_cell_ahead(A, B, AFTER_X, AFTER_Y); one_cell_behind(A, B, AFTER_X, AFTER_Y))
+  ).
 
 
-% Describes the typical "L-movement" that only a knight can do.
-%el_movement(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-
-%memberchk(+Term, ?List) -> used just to check if an element is in a list, famous alternative to member(?Term, ?List). 
+% memberchk(+Term, ?List) -> used just to check if an element is in a list, famous alternative to member(?Term, ?List). 
 memberchk(X,[X|_]) :- !.
 memberchk(X,[_|T]):- memberchk(X,T).
 
@@ -83,38 +116,56 @@ pawn_starting_row(Y) :-
   (turn(white), Y = 2);
   (turn(black), Y = 7).
 
-move_for_real(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+lets_move(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   retract(cell(BEFORE_X, BEFORE_Y, PIECE)), assert(cell(BEFORE_X, BEFORE_Y, e)),
   retract(cell(AFTER_X, AFTER_Y, _)), assert(cell(AFTER_X, AFTER_Y, PIECE)).
-  
+
+
+% legal_pawn_move(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 legal_pawn_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  % Moving forward to an empty cell (it can move two cells ahead if the pawn is at its starting row and the two cells ahead are both empty):
-  (
-    (contiguous_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, e));
-    (two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), pawn_starting_row(BEFORE_Y), contiguous_ahead(BEFORE_X, BEFORE_Y, CONTIGUOUS_AHEAD_X, CONTIGUOUS_AHEAD_Y), cell(CONTIGUOUS_AHEAD_X, CONTIGUOUS_AHEAD_Y, e), cell(AFTER_X, AFTER_Y, e))
+  (% Moving forward to an empty cell (it can move two cells ahead if the pawn is at its starting row and the two cells ahead are both empty):
+    (one_cell_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, e));
+    (two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), pawn_starting_row(BEFORE_Y), one_cell_ahead(BEFORE_X, BEFORE_Y, A, B), cell(A, B, e), cell(AFTER_X, AFTER_Y, e))
   );
-  % Moving forward diagonally if there's an enemy piece in the "AFTER" cell:
-  (
-    contiguous_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, SOME_PIECE), enemy(SOME_PIECE),
-    retract(cell(BEFORE_X, BEFORE_Y, PAWN)), assert(cell(BEFORE_X, BEFORE_Y, e)),
-    retract(cell(AFTER_X, AFTER_Y, SOME_PIECE)), assert(cell(AFTER_X, AFTER_Y, PAWN))
+  (% Moving forward diagonally if there's an enemy piece in the "AFTER" cell:
+    one_cell_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), cell(AFTER_X, AFTER_Y, SOME_PIECE), enemy(SOME_PIECE)
   ).
 
-move_knight(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  
+% legal_kniht_move(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
+legal_knight_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  l_pattern(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), 
+  (
+    cell(AFTER_X, AFTER_Y, e);
+    (cell(AFTER_X, AFTER_Y, SOME_PIECE), enemy(SOME_PIECE))
+  ).
 
+% move(+PIECE, +BEFORE_X, +BEFORE_Y, +AFTER_X, +AFTER_Y)
 move(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   (
     turn(white),
     (
       (PIECE = wp, cell(BEFORE_X, BEFORE_Y, wp), legal_pawn_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
-      (PIECE = wn, cell(BEFORE_X, BEFORE_Y, wn), legal_knight_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y))
+      (PIECE = wn, cell(BEFORE_X, BEFORE_Y, wn), legal_knight_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = wb, cell(BEFORE_X, BEFORE_Y, wb), legal_bishop_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = wr, cell(BEFORE_X, BEFORE_Y, wr), legal_rook_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = wq, cell(BEFORE_X, BEFORE_Y, wq), legal_queen_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = wk, cell(BEFORE_X, BEFORE_Y, wk), legal_king_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y))
     ),
-    move_for_real(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y),
+    lets_move(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y),
     change_turn,
-    !
+    !  % is this necessary? there already is a cut inside "change turn"...
   );
   (
-    turn(black), PIECE = bp, cell(BEFORE_X, BEFORE_Y, bp), move_pawn(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y),
-    retract(turn(black)), assert(turn(white))
+    turn(black),
+    (
+      (PIECE = bp, cell(BEFORE_X, BEFORE_Y, bp), legal_pawn_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = bn, cell(BEFORE_X, BEFORE_Y, bn), legal_knight_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = bb, cell(BEFORE_X, BEFORE_Y, bb), legal_bishop_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = br, cell(BEFORE_X, BEFORE_Y, br), legal_rook_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = bq, cell(BEFORE_X, BEFORE_Y, bq), legal_queen_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y));
+      (PIECE = bk, cell(BEFORE_X, BEFORE_Y, bk), legal_king_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y))
+    ),
+    lets_move(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y),
+    change_turn,
+    !  % is this necessary? there already is a cut inside "change turn"...
   ).
