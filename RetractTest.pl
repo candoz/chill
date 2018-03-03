@@ -29,46 +29,61 @@ cell(1, 1, wr). cell(2, 1, wn). cell(3, 1, wb). cell(4, 1, wq). cell(5, 1, wk). 
 
 % one_cell_ahead(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 one_cell_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
-  AFTER_X is BEFORE_X,
+  AFTER_X = BEFORE_X,
   ((turn(white), AFTER_Y is BEFORE_Y+1) ; (turn(black), AFTER_Y is BEFORE_Y-1)).
 
 % one_cell_behind(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 one_cell_behind(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
-  AFTER_X is BEFORE_X,
+  AFTER_X = BEFORE_X,
   ((turn(white), AFTER_Y is BEFORE_Y-1) ; (turn(black), AFTER_Y is BEFORE_Y+1)).
 
 % one_cell_right(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 one_cell_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   ((turn(white), AFTER_X is BEFORE_X+1) ; (turn(black), AFTER_X is BEFORE_X-1)),
-  AFTER_Y is BEFORE_Y.
+  AFTER_Y = BEFORE_Y.
 
 % one_cell_left(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 one_cell_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
   ((turn(white), AFTER_X is BEFORE_X-1) ; (turn(black), AFTER_X is BEFORE_X+1)),
-  AFTER_Y is BEFORE_Y.
+  AFTER_Y = BEFORE_Y.
+
+% in_line(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
+in_line(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  AFTER_X = BEFORE_X ; AFTER_Y = BEFORE_Y.
+
+% in_diagonal(+BEFORE_X, +BEFORE_Y, +AFTER_X, +AFTER_Y)
+in_diagonal(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  ((AFTER_Y - BEFORE_Y) =:= (AFTER_X - BEFORE_X)); % same diagonal
+  ((AFTER_Y - BEFORE_Y) =:= (BEFORE_X - AFTER_X)). % same anti-diagonal
+
+% one_cell_around(+BEFORE_X, +BEFORE_Y, +AFTER_X, +AFTER_Y)
+one_cell_around(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  (-1 =< AFTER_X - BEFORE_X , 1 >= AFTER_X - BEFORE_X),
+  (-1 =< AFTER_Y - BEFORE_Y , 1 >= AFTER_Y - BEFORE_Y),
+  (in_line(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) ; in_diagonal(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y)).
 
 
 %%% Ad-hoc direction predicates %%%
 
 % two_cells_ahead(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
-two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
-  ((turn(white), AFTER_Y is BEFORE_Y+2) ; (turn(black), AFTER_Y is BEFORE_Y-2)),
-  AFTER_X is BEFORE_X.
+two_cells_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  AFTER_X = BEFORE_X,
+  ((turn(white), AFTER_Y is BEFORE_Y+2) ; (turn(black), AFTER_Y is BEFORE_Y-2)).
 
 % two_cells_behind(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 two_cells_behind(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  ((turn(white), AFTER_Y is BEFORE_Y-2) ; (turn(black), AFTER_Y is BEFORE_Y+2)),
-  AFTER_X is BEFORE_X.
+  AFTER_X = BEFORE_X,
+  ((turn(white), AFTER_Y is BEFORE_Y-2) ; (turn(black), AFTER_Y is BEFORE_Y+2)).
 
 % two_cells_right(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 two_cells_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   ((turn(white), AFTER_X is BEFORE_X+2) ; (turn(black), AFTER_X is BEFORE_X-2)),
-  AFTER_Y is BEFORE_Y.
+  AFTER_Y = BEFORE_Y.
 
 % two_cells_left(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 two_cells_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   ((turn(white), AFTER_X is BEFORE_X-2) ; (turn(black), AFTER_X is BEFORE_X+2)),
-  AFTER_Y is BEFORE_Y.
+  AFTER_Y = BEFORE_Y.
 
 % one_cell_ahead_right(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 one_cell_ahead_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
