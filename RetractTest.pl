@@ -25,44 +25,6 @@ cell(1, 2, wp). cell(2, 2, wp). cell(3, 2, wp). cell(4, 2, wp). cell(5, 2, wp). 
 cell(1, 1, wr). cell(2, 1, wn). cell(3, 1, wb). cell(4, 1, wq). cell(5, 1, wk). cell(6, 1, wb). cell(7, 1, wn). cell(8, 1, wr). % 1
 
 
-%%% Generic, reusable direction predicates %%%
-
-% one_cell_ahead(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
-one_cell_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
-  AFTER_X = BEFORE_X,
-  ((turn(white), AFTER_Y is BEFORE_Y+1) ; (turn(black), AFTER_Y is BEFORE_Y-1)).
-
-% one_cell_behind(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
-one_cell_behind(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
-  AFTER_X = BEFORE_X,
-  ((turn(white), AFTER_Y is BEFORE_Y-1) ; (turn(black), AFTER_Y is BEFORE_Y+1)).
-
-% one_cell_right(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
-one_cell_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
-  ((turn(white), AFTER_X is BEFORE_X+1) ; (turn(black), AFTER_X is BEFORE_X-1)),
-  AFTER_Y = BEFORE_Y.
-
-% one_cell_left(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
-one_cell_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :- 
-  ((turn(white), AFTER_X is BEFORE_X-1) ; (turn(black), AFTER_X is BEFORE_X+1)),
-  AFTER_Y = BEFORE_Y.
-
-% in_line(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
-in_line(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  AFTER_X = BEFORE_X ; AFTER_Y = BEFORE_Y.
-
-% in_diagonal(+BEFORE_X, +BEFORE_Y, +AFTER_X, +AFTER_Y)
-in_diagonal(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  ((AFTER_Y - BEFORE_Y) =:= (AFTER_X - BEFORE_X)); % same diagonal
-  ((AFTER_Y - BEFORE_Y) =:= (BEFORE_X - AFTER_X)). % same anti-diagonal
-
-% one_cell_around(+BEFORE_X, +BEFORE_Y, +AFTER_X, +AFTER_Y)
-one_cell_around(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  (-1 =< AFTER_X - BEFORE_X , 1 >= AFTER_X - BEFORE_X),
-  (-1 =< AFTER_Y - BEFORE_Y , 1 >= AFTER_Y - BEFORE_Y),
-  (in_line(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) ; in_diagonal(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y)).
-
-
 %%% Ad-hoc direction predicates %%%
 
 % two_cells_ahead(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
@@ -97,25 +59,6 @@ one_cell_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
 one_cell_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   one_cell_ahead_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) ; one_cell_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y).
 
-% l_pattern(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y)
-l_pattern(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  (
-    two_cells_ahead(BEFORE_X, BEFORE_Y, A, B),
-    (one_cell_right(A, B, AFTER_X, AFTER_Y); one_cell_left(A, B, AFTER_X, AFTER_Y))
-  );
-  (
-    two_cells_behind(BEFORE_X, BEFORE_Y, A, B),
-    (one_cell_right(A, B, AFTER_X, AFTER_Y); one_cell_left(A, B, AFTER_X, AFTER_Y))
-  );
-  (
-    two_cells_right(BEFORE_X, BEFORE_Y, A, B),
-    (one_cell_ahead(A, B, AFTER_X, AFTER_Y); one_cell_behind(A, B, AFTER_X, AFTER_Y))
-  );
-  (
-    two_cells_left(BEFORE_X, BEFORE_Y, A, B),
-    (one_cell_ahead(A, B, AFTER_X, AFTER_Y); one_cell_behind(A, B, AFTER_X, AFTER_Y))
-  ).
-
 
 % memberchk(+Term, ?List) -> used just to check if an element is in a list, famous alternative to member(?Term, ?List). 
 memberchk(X,[X|_]) :- !.
@@ -135,6 +78,20 @@ lets_move(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   retract(cell(BEFORE_X, BEFORE_Y, PIECE)), assert(cell(BEFORE_X, BEFORE_Y, e)),
   retract(cell(AFTER_X, AFTER_Y, _)), assert(cell(AFTER_X, AFTER_Y, PIECE)).
 
+path_is_clear(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-  % a path can be a straight or a diagonal line
+  (
+    in_diagonal(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y),
+    north_east_is_clear
+  ). %% TODO
+    
+diagonal_is_free(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  in_diagonal(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y),  % this check can be moved outside
+  (
+    AFTER_X > BEFORE_X,
+    (
+      (AFTER_Y > BEFORE_Y, diagonal_is_free(BEFORE_X, BEFORE_Y, AFTER_X-1, AFTER_Y-1))
+  ).
+  
 
 % legal_pawn_move(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 legal_pawn_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
@@ -148,11 +105,13 @@ legal_pawn_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
 
 % legal_kniht_move(+BEFORE_X, +BEFORE_Y, ?AFTER_X, ?AFTER_Y)
 legal_knight_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
-  l_pattern(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y), 
-  (
-    cell(AFTER_X, AFTER_Y, e);
-    (cell(AFTER_X, AFTER_Y, SOME_PIECE), enemy(SOME_PIECE))
-  ).
+  (cell(AFTER_X, AFTER_Y, e) ; (cell(AFTER_X, AFTER_Y, SOME_PIECE) , enemy(SOME_PIECE))),  % the "after" cell is empty or contains an enemy piece
+  l_pattern(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y).
+
+% legal_bishop_move(+BEFORE_X, +BEFORE_Y, +AFTER_X, +AFTER_Y)
+legal_bishop_move(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
+  (cell(AFTER_X, AFTER_Y, e) ; (cell(AFTER_X, AFTER_Y, SOME_PIECE) , enemy(SOME_PIECE))),  % the "after" cell is empty or contains an enemy piece
+  in_diagonal(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y),
 
 % move(+PIECE, +BEFORE_X, +BEFORE_Y, +AFTER_X, +AFTER_Y)
 move(PIECE, BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
