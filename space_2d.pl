@@ -30,7 +30,7 @@ west_projection(point(X0,_), point(X,_), Proj) :- Proj is X0-X.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%               Aligned points and lists of points in between                %%
+%%                  Relevant alignements between two points                   %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -86,13 +86,27 @@ aligned(P0, P) :- aligned_north_west(P0, P).
 aligned(P0, P) :- aligned_south_east(P0, P).
 aligned(P0, P) :- aligned_south_west(P0, P).
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%            Lists of points between two given starting points:              %%
+%%         they must be aligned over one of the 9 axes of a compass           %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
 %in_between(+point(X1,Y1), +point(X2,Y2), -Points)
-%in_between(point(X1,Y1), point(X2,Y2), Points) :-
-  
-  
+in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_north(point(X0,Y0), point(X,Y)), in_between_north(point(X0,Y0), point(X,Y), Points).
+in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_south(point(X0,Y0), point(X,Y)), in_between_south(point(X0,Y0), point(X,Y), Points).
+in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_west(point(X0,Y0), point(X,Y)), in_between_west(point(X0,Y0), point(X,Y), Points).
+in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_east(point(X0,Y0), point(X,Y)), in_between_east(point(X0,Y0), point(X,Y), Points).
+in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_north_east(point(X0,Y0), point(X,Y)), in_between_north_east(point(X0,Y0), point(X,Y), Points).
+in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_north_west(point(X0,Y0), point(X,Y)), in_between_north_west(point(X0,Y0), point(X,Y), Points).
+in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_south_east(point(X0,Y0), point(X,Y)), in_between_south_east(point(X0,Y0), point(X,Y), Points).
+in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_south_west(point(X0,Y0), point(X,Y)), in_between_south_west(point(X0,Y0), point(X,Y), Points).  
 
 
+%% NB: the following predicates must be used anly if the two points are aligned in the respective direction!
+
+%in_between_north(+point(X1,Y1), +point(X2,Y2), -Points)
+in_between_north(point(X0,Y0), point(X,Y), Points)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%          Move to one particular direction, from (X0,Y0) to (X,Y)           %%
