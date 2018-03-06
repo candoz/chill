@@ -1,64 +1,76 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%         Point representation in 2d space with integer coordinates          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%point(?X, ?Y)
+point(X, Y) :-
+  (integer(X); var(X)),
+  (integer(Y); var(Y)).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%         Projection of the vector (X0,Y0) -> (X,Y) on N/S/W/E axes          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%north_projection(+X0, +Y0, +X, +Y, ?PROJ)
-north_projection(_, Y0, _, Y, PROJ) :- PROJ is Y - Y0.
+%north_projection(+point(X0,Y0), +point(X,Y), ?Proj)
+north_projection(point(_,Y0), point(_, Y), Proj) :- Proj is Y-Y0.
 
-%south_projection(+X0, +Y0, +X, +Y, ?PROJ)
-south_projection(_, Y0, _, Y, PROJ) :- PROJ is Y0 - Y.
+%south_projection(+point(X0,Y0), +point(X,Y), ?Proj)
+south_projection(point(_,Y0), point(_, Y), Proj) :- Proj is Y0-Y.
 
-%east_projection(+X0, +Y0, +X, +Y, ?PROJ)
-east_projection(X0, _, X, _, PROJ) :- PROJ is X - X0.
+%east_projection(+point(X0,Y0), +point(X,Y), ?Proj)
+east_projection(point(X0,_), point(X,_), Proj) :- Proj is X-X0.
 
-%west_projection(+X0, +Y0, +X, +Y, ?PROJ)
-west_projection(X0, _, X, _, PROJ) :- PROJ is X0 - X.
+%west_projection(+point(X0,Y0), +point(X,Y), ?Proj)
+west_projection(point(X0,_), point(X,_), Proj) :- Proj is X0-X.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%          Move in one particular direction from (X0,Y0) to (X,Y)            %%
+%%          Move to one particular direction, from (X0,Y0) to (X,Y)           %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% one_step_north(+X0, +Y0, ?X, ?Y)
-one_step_north(X0, Y0, X, Y) :- X = X0, Y is Y0 + 1.
+% one_step_north(+point(X0,Y0), ?point(X,Y))
+one_step_north(point(X0,Y0), point(X0,Y)) :- Y is Y0 + 1.
 
-% one_step_south(+X0, +Y0, ?X, ?Y)
-one_step_south(X0, Y0, X, Y) :- X = X0, Y is Y0 - 1.
+% one_step_south(+point(X0,Y0), ?point(X,Y))
+one_step_south(point(X0,Y0), point(X0,Y)) :- Y is Y0 - 1.
 
-% one_step_east(+X0, +Y0, ?X, ?Y)
-one_step_east(X0, Y0, X, Y) :- X is X0 + 1, Y = Y0.
+% one_step_east(+point(X0,Y0), ?point(X,Y))
+one_step_east(point(X0,Y0), point(X,Y0)) :- X is X0 + 1.
 
-% one_step_west(+X0, +Y0, ?X, ?Y)
-one_step_west(X0, Y0, X, Y) :- X is X0 - 1, Y = Y0.
-
-
-% two_steps_north(+X0, +Y0, ?X, ?Y)
-two_steps_north(X0, Y0, X, Y) :- X = X0, Y is Y0 + 2.
-
-% two_steps_south(+X0, +Y0, ?X, ?Y)
-two_steps_south(X0, Y0, X, Y) :- X = X0, Y is Y0 - 2.
-
-% two_steps_east(+X0, +Y0, ?X, ?Y)
-two_steps_east(X0, Y0, X, Y) :- X is X0 + 2, Y = Y0.
-
-% two_steps_west(+X0, +Y0, ?X, ?Y)
-two_steps_west(X0, Y0, X, Y) :- X is X0 - 2, Y = Y0.
+% one_step_west(+point(X0,Y0), ?point(X,Y))
+one_step_west(point(X0,Y0), point(X,Y0)) :- X is X0 - 1.
 
 
-% n_steps_north(+N, +X0, +Y0, ?X, ?Y)
-n_steps_north(X0, Y0, X, Y) :- X = X0, Y is Y0 + N.
+% two_steps_north(+point(X0,Y0), ?point(X,Y))
+two_steps_north(point(X0,Y0), point(X0,Y)) :- Y is Y0 + 2.
 
-% n_steps_south(+N, +X0, +Y0, ?X, ?Y)
-n_steps_south(X0, Y0, X, Y) :- X = X0, Y is Y0 - N.
+% two_steps_south(+point(X0,Y0), ?point(X,Y))
+two_steps_south(point(X0,Y0), point(X0,Y)) :- Y is Y0 - 2.
 
-% n_steps_east(+N, +X0, +Y0, ?X, ?Y)
-n_steps_east(X0, Y0, X, Y) :- X is X0 + N, Y = Y0.
+% two_steps_east(+point(X0,Y0), ?point(X,Y))
+two_steps_east(point(X0,Y0), point(X,Y0)) :- X is X0 + 2.
 
-% n_steps_west(+N, +X0, +Y0, ?X, ?Y)
-n_steps_west(X0, Y0, X, Y) :- X is X0 - N, Y = Y0.
+% two_steps_west(+point(X0,Y0), ?point(X,Y))
+two_steps_west(point(X0,Y0), point(X,Y0)) :- X is X0 - 2.
+
+
+% n_steps_north(+point(X0,Y0), ?point(X,Y))
+n_steps_north(point(X0,Y0), point(X0,Y)) :- Y is Y0 + N.
+
+% n_steps_south(+point(X0,Y0), ?point(X,Y))
+n_steps_south(point(X0,Y0), point(X0,Y)) :- Y is Y0 - N.
+
+% n_steps_east(+point(X0,Y0), ?point(X,Y))
+n_steps_east(point(X0,Y0), point(X,Y0)) :- X is X0 + N.
+
+% n_steps_west(+point(X0,Y0), ?point(X,Y))
+n_steps_west(point(X0,Y0), point(X,Y0)) :- X is X0 - N.
 
 
 
@@ -67,22 +79,22 @@ n_steps_west(X0, Y0, X, Y) :- X is X0 - N, Y = Y0.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%adjacent(+X0, +Y0, ?X, ?Y)
-adjacent(X0, Y0, X, Y) :-
+%adjacent(+point(X0,Y0), ?point(X,Y))
+adjacent(point(X0,Y0), point(X,Y)) :-
   (X is X0 - 1; X is X0; X is X0 + 1), 
   (Y is Y0 - 1; Y is Y0; Y is Y0 + 1),
   not (X = X0, Y = Y0).  % comment out this subgoal to include the soultion where (X,Y) is the same point as (X0,Y0)
 
-%% In this previous version the 3rd and 4th parameter should have been mandatory instantiated. I found that to be an unnecessary limit. 
-%adjacent_old(+X1, +Y1, +X2, +Y2)
-adjacent_old(X1, Y1, X2, Y2) :-
-  north_projection(_, Y1, _, Y2, N_PROJ), (abs(N_PROJ) =:= 0; abs(N_PROJ) =:= 1),
-  east_projection(X1, _, X2, _, E_PROJ), (abs(E_PROJ) =:= 0; abs(E_PROJ) =:= 1),
-  ((X1 =\= X2); (Y1 =\= Y2)).  % comment out this subgoal to include the soultion where (X2,Y2) is the same point as (X1,Y1)
+%% In this (previous) version the 2nd point should have been mandatory instantiated: I found that to be an unnecessary limit. 
+%adjacent_old(+point(X1,Y1), +point(X2,Y2))
+adjacent_old(point(X1,Y1), point(X2,Y2)) :-
+  north_projection(point(X1,Y1), point(X2,Y2), N_Proj), (N_Proj = 0; abs(N_Proj) =:= 1),
+  east_projection(point(X1,Y1), point(X2,Y2), E_Proj), (E_Proj = 0; abs(E_Proj) =:= 1),
+  (X1 =\= X2; Y1 =\= Y2).  % comment out this subgoal to include the soultion where (X2,Y2) is the same point as (X1,Y1)
 
 
-%l_pattern(+X0, +Y0, ?X, ?Y)
-l_pattern(X0, Y0, X, Y) :-
+%l_pattern(+point(X0,Y0), ?point(X,Y))
+l_pattern(point(X0,Y0), point(X,Y)) :-
   (
     (X is X0 + 2; X is X0 - 2),
     (Y is Y0 + 1; Y is Y0 - 1)
@@ -92,19 +104,26 @@ l_pattern(X0, Y0, X, Y) :-
     (Y is Y0 + 2; Y is Y0 - 2)
   ).
 
-%% Equivalent but slightly less efficient version of l_pattern/4.
-%l_pattern_old(+X0, +Y0, ?X, ?Y)
-l_pattern_old(X0, Y0, X, Y) :-
+%% An equivalent (but slightly less efficient) version of l_pattern/2.
+%l_pattern_old(+point(X0,Y0), ?point(X,Y))
+l_pattern_old(point(X0,Y0), point(X,Y)) :-
   (
-    (two_steps_north(X0, Y0, A, B); two_steps_south(X0, Y0, A, B)),
-    (one_step_east(A, B, X, Y); one_step_west(A, B, X, Y))
+    (two_steps_north(point(X0,Y0), point(A,B)); two_steps_south(point(X0,Y0), point(A,B))),
+    (one_step_east(point(A,B), point(X,Y)); one_step_west(point(A,B), point(X,Y)))
   );
   (
-    (one_step_north(X0, Y0, A, B); one_step_south(X0, Y0, A, B)),
-    (two_steps_east(A, B, X, Y); two_steps_west(A, B, X, Y))
+    (one_step_north(point(X0,Y0), point(A,B)); one_step_south(point(X0,Y0), point(A,B))),
+    (two_steps_east(point(A,B), point(X,Y)); two_steps_west(point(A,B), point(X,Y)))
   ).
 
 
-%in_between(+X1, +Y1, +X2, +Y2, -X, -Y)
-in_between(X1, Y1, X2, Y2) :-
-  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55 TODO
+
+
+%in_between(+point(X1,Y1), +point(X2,Y2), -Points)
+in_between(point(X1,Y1), point(X2,Y2)) :-
+  north_projection(X1, Y1, X2, Y2, N_PROJ), east_projection(X1, Y1, X2, Y2, E_PROJ),
+  (
+    N_PROJ = E_PROJ  % anti-diagonal
+  ).
+    
