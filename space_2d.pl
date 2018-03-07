@@ -15,17 +15,25 @@ point(X, Y) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%north_projection(+point(X0,Y0), +point(X,Y), ?Proj)
-north_projection(point(_,Y0), point(_,Y), Proj) :- Proj is Y-Y0.
+%north_projection(+point(X0,Y0), +point(X,Y), -Projection)
+north_projection(point(_,Y0), point(_,Y), Projection) :- nonvar(Y0), nonvar(Y), Projection is Y - Y0, !.  % green cut
+%north_projection(+point(X0,Y0), -point(X,Y), +Projection)
+north_projection(point(_,Y0), point(_,Y), Projection) :- nonvar(Y0), nonvar(Projection), Y is Y0 + Projection.
 
-%south_projection(+point(X0,Y0), +point(X,Y), ?Proj)
-south_projection(point(_,Y0), point(_,Y), Proj) :- Proj is Y0-Y.
+%south_projection(+point(X0,Y0), +point(X,Y), -Projection)
+south_projection(point(_,Y0), point(_,Y), Projection) :- nonvar(Y0), nonvar(Y), Projection is Y0 - Y, !.  % green cut
+%south_projection(+point(X0,Y0), -point(X,Y), +Projection)
+south_projection(point(_,Y0), point(_,Y), Projection) :- nonvar(Y0), nonvar(Projection), Y is Y0 - Projection.
 
-%east_projection(+point(X0,Y0), +point(X,Y), ?Proj)
-east_projection(point(X0,_), point(X,_), Proj) :- Proj is X-X0.
+%east_projection(+point(X0,Y0), +point(X,Y), -Projection)
+east_projection(point(X0,_), point(X,_), Projection) :- nonvar(X0), nonvar(X), Projection is X - X0, !.  % green cut
+%east_projection(+point(X0,Y0), -point(X,Y), +Projection)
+east_projection(point(X0,_), point(X,_), Projection) :- nonvar(X0), nonvar(Projection), X is X0 + Projection.
 
-%west_projection(+point(X0,Y0), +point(X,Y), ?Proj)
-west_projection(point(X0,_), point(X,_), Proj) :- Proj is X0-X.
+%west_projection(+point(X0,Y0), +point(X,Y), -Projection)
+west_projection(point(X0,_), point(X,_), Projection) :- nonvar(X0), nonvar(X), Projection is X0 - X, !.  % green cut
+%west_projection(+point(X0,Y0), -point(X,Y), +Projection)
+west_projection(point(X0,_), point(X,_), Projection) :- nonvar(X0), nonvar(Projection), X is X0 - Projection.
 
 
 
@@ -76,7 +84,7 @@ aligned_south_west(point(X0,Y0), point(X,Y)) :-
   west_projection(point(X0,Y0), point(X,Y), S_Proj).
 
 
-%aligned(+point(X0,Y0), +point(X,Y)) - MAYBE USELESS
+%aligned(+point(X0,Y0), +point(X,Y))
 aligned(P0, P) :- aligned_north(P0, P).
 aligned(P0, P) :- aligned_south(P0, P).
 aligned(P0, P) :- aligned_east(P0, P).
@@ -92,64 +100,21 @@ aligned(P0, P) :- aligned_south_west(P0, P).
 %%         they must be aligned over one of the 9 axes of a compass           %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-%in_between(+point(X1,Y1), +point(X2,Y2), -Points)
-in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_north(point(X0,Y0), point(X,Y)), in_between_north(point(X0,Y0), point(X,Y), Points).
-in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_south(point(X0,Y0), point(X,Y)), in_between_south(point(X0,Y0), point(X,Y), Points).
-in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_west(point(X0,Y0), point(X,Y)), in_between_west(point(X0,Y0), point(X,Y), Points).
-in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_east(point(X0,Y0), point(X,Y)), in_between_east(point(X0,Y0), point(X,Y), Points).
-in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_north_east(point(X0,Y0), point(X,Y)), in_between_north_east(point(X0,Y0), point(X,Y), Points).
-in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_north_west(point(X0,Y0), point(X,Y)), in_between_north_west(point(X0,Y0), point(X,Y), Points).
-in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_south_east(point(X0,Y0), point(X,Y)), in_between_south_east(point(X0,Y0), point(X,Y), Points).
-in_between(point(X1,Y1), point(X2,Y2), Points) :- aligned_south_west(point(X0,Y0), point(X,Y)), in_between_south_west(point(X0,Y0), point(X,Y), Points).  
+%in_between(+point(X0,Y0), +point(X,Y), -Points)
+in_between(point(X0,Y0), point(X,Y), Points) :- aligned_north(point(X0,Y0), point(X,Y)), in_between_north(point(X0,Y0), point(X,Y), Points).
+in_between(point(X0,Y0), point(X,Y), Points) :- aligned_south(point(X0,Y0), point(X,Y)), in_between_south(point(X0,Y0), point(X,Y), Points).
+in_between(point(X0,Y0), point(X,Y), Points) :- aligned_west(point(X0,Y0), point(X,Y)), in_between_west(point(X0,Y0), point(X,Y), Points).
+in_between(point(X0,Y0), point(X,Y), Points) :- aligned_east(point(X0,Y0), point(X,Y)), in_between_east(point(X0,Y0), point(X,Y), Points).
+in_between(point(X0,Y0), point(X,Y), Points) :- aligned_north_east(point(X0,Y0), point(X,Y)), in_between_north_east(point(X0,Y0), point(X,Y), Points).
+in_between(point(X0,Y0), point(X,Y), Points) :- aligned_north_west(point(X0,Y0), point(X,Y)), in_between_north_west(point(X0,Y0), point(X,Y), Points).
+in_between(point(X0,Y0), point(X,Y), Points) :- aligned_south_east(point(X0,Y0), point(X,Y)), in_between_south_east(point(X0,Y0), point(X,Y), Points).
+in_between(point(X0,Y0), point(X,Y), Points) :- aligned_south_west(point(X0,Y0), point(X,Y)), in_between_south_west(point(X0,Y0), point(X,Y), Points).  
 
 
 %% NB: the following predicates must be used anly if the two points are aligned in the respective direction!
 
 %in_between_north(+point(X1,Y1), +point(X2,Y2), -Points)
-in_between_north(point(X0,Y0), point(X,Y), Points)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%          Move to one particular direction, from (X0,Y0) to (X,Y)           %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-% one_step_north(+point(X0,Y0), ?point(X,Y))
-one_step_north(point(X0,Y0), point(X0,Y)) :- Y is Y0 + 1.
-
-% one_step_south(+point(X0,Y0), ?point(X,Y))
-one_step_south(point(X0,Y0), point(X0,Y)) :- Y is Y0 - 1.
-
-% one_step_east(+point(X0,Y0), ?point(X,Y))
-one_step_east(point(X0,Y0), point(X,Y0)) :- X is X0 + 1.
-
-% one_step_west(+point(X0,Y0), ?point(X,Y))
-one_step_west(point(X0,Y0), point(X,Y0)) :- X is X0 - 1.
-
-
-% two_steps_north(+point(X0,Y0), ?point(X,Y))
-two_steps_north(point(X0,Y0), point(X0,Y)) :- Y is Y0 + 2.
-
-% two_steps_south(+point(X0,Y0), ?point(X,Y))
-two_steps_south(point(X0,Y0), point(X0,Y)) :- Y is Y0 - 2.
-
-% two_steps_east(+point(X0,Y0), ?point(X,Y))
-two_steps_east(point(X0,Y0), point(X,Y0)) :- X is X0 + 2.
-
-% two_steps_west(+point(X0,Y0), ?point(X,Y))
-two_steps_west(point(X0,Y0), point(X,Y0)) :- X is X0 - 2.
-
-
-% n_steps_north(+point(X0,Y0), ?point(X,Y))
-n_steps_north(point(X0,Y0), point(X0,Y)) :- Y is Y0 + N.
-
-% n_steps_south(+point(X0,Y0), ?point(X,Y))
-n_steps_south(point(X0,Y0), point(X0,Y)) :- Y is Y0 - N.
-
-% n_steps_east(+point(X0,Y0), ?point(X,Y))
-n_steps_east(point(X0,Y0), point(X,Y0)) :- X is X0 + N.
-
-% n_steps_west(+point(X0,Y0), ?point(X,Y))
-n_steps_west(point(X0,Y0), point(X,Y0)) :- X is X0 - N.
+in_between_north(point(X0,Y0), point(X,Y), Points).
 
 
 
