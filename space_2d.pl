@@ -105,7 +105,8 @@ aligned_anti_diagonal(P0, P) :- aligned_south_west(P0, P).
 aligned(P0, P) :- aligned_vertically(P0, P), !.  % green cut
 aligned(P0, P) :- aligned_horizontally(P0, P), !.  % green cut
 aligned(P0, P) :- aligned_main_diagonal(P0, P), !.  % green cut
-aligned(P0, P) :- aligned_anti_diagonal(P0, P), !.  % green cut
+aligned(P0, P) :- aligned_anti_diagonal(P0, P).
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -115,13 +116,71 @@ aligned(P0, P) :- aligned_anti_diagonal(P0, P), !.  % green cut
 
 %in_between_north(+point(X0,Y0), +point(X,Y), -Points)
 in_between_north(point(X0,Y0), point(X0,Y), [point(X0,Yi)]) :- Yi is Y0 + 1, Yi is Y - 1, !.  % green cut
-in_between_north(point(X0,Y0), point(X0,Y), [point(X0,Yi) | Other_points]) :- Yi is Y0 + 1, Yi =< Y,
+in_between_north(point(X0,Y0), point(X0,Y), [point(X0,Yi) | Other_points]) :- 
+  Yi is Y0 + 1, Yi < Y,
   in_between_north(point(X0,Yi), point(X0,Y), Other_points).
 
 %in_between_south(+point(X0,Y0), +point(X,Y), -Points)
 in_between_south(point(X0,Y0), point(X0,Y), [point(X0,Yi)]) :- Yi is Y0 - 1, Yi is Y + 1, !.  % green cut
-in_between_south(point(X0,Y0), point(X0,Y), [point(X0,Yi) | Other_points]) :- Yi is Y0 - 1, Yi =< Y,
+in_between_south(point(X0,Y0), point(X0,Y), [point(X0,Yi) | Other_points]) :- 
+  Yi is Y0 - 1, Yi > Y,
   in_between_south(point(X0,Yi), point(X0,Y), Other_points).
+
+%in_between_east(+point(X0,Y0), +point(X,Y), -Points)
+in_between_east(point(X0,Y0), point(X,Y0), [point(Xi,Y0)]) :- Xi is X0 + 1, Xi is X - 1, !.  % green cut
+in_between_east(point(X0,Y0), point(X,Y0), [point(Xi,Y0) | Other_points]) :- 
+  Xi is X0 + 1, Xi < X,
+  in_between_east(point(Xi,Y0), point(X,Y0), Other_points).
+
+%in_between_west(+point(X0,Y0), +point(X,Y), -Points)
+in_between_west(point(X0,Y0), point(X,Y0), [point(Xi,Y0)]) :- Xi is X0 - 1, Xi is X + 1, !.  % green cut
+in_between_west(point(X0,Y0), point(X,Y0), [point(Xi,Y0) | Other_points]) :- 
+  Xi is X0 - 1, Xi > X,
+  in_between_west(point(Xi,Y0), point(X,Y0), Other_points).
+
+
+%in_between_north_east(+point(X0,Y0), +point(X,Y), -Points)
+in_between_north_east(point(X0,Y0), point(X,Y), [point(Xi,Yi)]) :- 
+  Xi is X0 + 1, Xi is X - 1,
+  Yi is Y0 + 1, Yi is Y - 1, !.  % green cut
+in_between_north_east(point(X0,Y0), point(X,Y), [point(Xi,Yi) | Other_points]) :- 
+  Xi is X0 + 1, Xi < X,
+  Yi is Y0 + 1, Yi < Y,
+  in_between_north_east(point(Xi,Yi), point(X,Y), Other_points).
+
+%in_between_north_west(+point(X0,Y0), +point(X,Y), -Points)
+in_between_north_west(point(X0,Y0), point(X,Y), [point(Xi,Yi)]) :- 
+  Xi is X0 - 1, Xi is X + 1,
+  Yi is Y0 + 1, Yi is Y - 1, !.  % green cut
+in_between_north_west(point(X0,Y0), point(X,Y), [point(Xi,Yi) | Other_points]) :- 
+  Xi is X0 - 1, Xi > X,
+  Yi is Y0 + 1, Yi < Y,
+  in_between_north_west(point(Xi,Yi), point(X,Y), Other_points).
+
+%in_between_south_east(+point(X0,Y0), +point(X,Y), -Points)
+in_between_south_east(point(X0,Y0), point(X,Y), [point(Xi,Yi)]) :- 
+  Xi is X0 + 1, Xi is X - 1,
+  Yi is Y0 - 1, Yi is Y + 1, !.  % green cut
+in_between_south_east(point(X0,Y0), point(X,Y), [point(Xi,Yi) | Other_points]) :- 
+  Xi is X0 + 1, Xi < X,
+  Yi is Y0 - 1, Yi > Y,
+  in_between_south_east(point(Xi,Yi), point(X,Y), Other_points).
+
+%in_between_south_west(+point(X0,Y0), +point(X,Y), -Points)
+in_between_south_west(point(X0,Y0), point(X,Y), [point(Xi,Yi)]) :- 
+  Xi is X0 - 1, Xi is X + 1,
+  Yi is Y0 - 1, Yi is Y + 1, !.  % green cut
+in_between_south_west(point(X0,Y0), point(X,Y), [point(Xi,Yi) | Other_points]) :- 
+  Xi is X0 - 1, Xi > X,
+  Yi is Y0 - 1, Yi > Y,
+  in_between_south_west(point(Xi,Yi), point(X,Y), Other_points).
+
+
+%in_between(+point(X0,Y0), +point(X,Y), -Points)
+in_between(point(X0,Y0), point(X,Y), Points) :- in_between_north(point(X0,Y0), point(X,Y), Points), !.  % green cut
+in_between(point(X0,Y0), point(X,Y), Points) :- in_between_south(point(X0,Y0), point(X,Y), Points), !.  % green cut
+in_between(point(X0,Y0), point(X,Y), Points) :- in_between_east(point(X0,Y0), point(X,Y), Points), !.  % green cut
+in_between(point(X0,Y0), point(X,Y), Points) :- in_between_west(point(X0,Y0), point(X,Y), Points), !.  % green cut
 
 
 
