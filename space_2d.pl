@@ -113,8 +113,12 @@ in_between(point(X0,Y0), point(X,Y), Points) :- aligned_south_west(point(X0,Y0),
 
 %% NB: the following predicates must be used anly if the two points are aligned in the respective direction!
 
-%in_between_north(+point(X1,Y1), +point(X2,Y2), -Points)
-in_between_north(point(X0,Y0), point(X,Y), Points).
+%in_between_north(+point(X0,Y0), +point(X,Y), -Points)
+in_between_north(point(X0,Y0), point(X0,Y), []) :- Y is Y0 + 1, !.  % red cut
+in_between_north(point(X0,Y0), point(X0,Y), [point(X0,Yi) | Other_points]) :- 
+  %aligned_north(point(X0,Y0), point(X,Y)),  % commented out for efficiency, see the NB above
+  Yi is Y0 + 1,
+  in_between_north(point(X0,Yi), point(X0,Y), Other_points).
 
 
 
