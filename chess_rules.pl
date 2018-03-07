@@ -48,7 +48,8 @@ one_cell_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
 one_cell_diagonal_ahead(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) :-
   one_cell_ahead_right(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y) ; one_cell_ahead_left(BEFORE_X, BEFORE_Y, AFTER_X, AFTER_Y).
 
-
+empty_cells([]).
+empty_cells([cell(_, _, e) | Tail]) :- empty_cells(Tail).
 
 
 black(PIECE) :- member(PIECE, [bp,br,bn,bb,bq,bk]).

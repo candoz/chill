@@ -84,41 +84,44 @@ aligned_south_west(point(X0,Y0), point(X,Y)) :-
   west_projection(point(X0,Y0), point(X,Y), S_Proj).
 
 
+%aligned_vertically(+point(X0,Y0), +point(X,Y))
+aligned_vertically(P0, P) :- aligned_north(P0, P), !.  % green cut
+aligned_vertically(P0, P) :- aligned_south(P0, P).
+
+%aligned_horizontally(+point(X0,Y0), +point(X,Y))
+aligned_horizontally(P0, P) :- aligned_east(P0, P), !.  % green cut
+aligned_horizontally(P0, P) :- aligned_west(P0, P).
+
+%aligned_main_diagonal(+point(X0,Y0), +point(X,Y))
+aligned_main_diagonal(P0, P) :- aligned_north_west(P0, P), !.  % green cut
+aligned_main_diagonal(P0, P) :- aligned_south_east(P0, P).
+
+%aligned_anti_diagonal(+point(X0,Y0), +point(X,Y))
+aligned_anti_diagonal(P0, P) :- aligned_north_east(P0, P), !.  % green cut
+aligned_anti_diagonal(P0, P) :- aligned_south_west(P0, P).
+
+
 %aligned(+point(X0,Y0), +point(X,Y))
-aligned(P0, P) :- aligned_north(P0, P).
-aligned(P0, P) :- aligned_south(P0, P).
-aligned(P0, P) :- aligned_east(P0, P).
-aligned(P0, P) :- aligned_west(P0, P).
-aligned(P0, P) :- aligned_north_east(P0, P).
-aligned(P0, P) :- aligned_north_west(P0, P).
-aligned(P0, P) :- aligned_south_east(P0, P).
-aligned(P0, P) :- aligned_south_west(P0, P).
+aligned(P0, P) :- aligned_vertically(P0, P), !.  % green cut
+aligned(P0, P) :- aligned_horizontally(P0, P), !.  % green cut
+aligned(P0, P) :- aligned_main_diagonal(P0, P), !.  % green cut
+aligned(P0, P) :- aligned_anti_diagonal(P0, P), !.  % green cut
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%            Lists of points between two given starting points:              %%
-%%         they must be aligned over one of the 9 axes of a compass           %%
+%%               Lists of points between two (aligned) points                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-%in_between(+point(X0,Y0), +point(X,Y), -Points)
-in_between(point(X0,Y0), point(X,Y), Points) :- aligned_north(point(X0,Y0), point(X,Y)), in_between_north(point(X0,Y0), point(X,Y), Points).
-in_between(point(X0,Y0), point(X,Y), Points) :- aligned_south(point(X0,Y0), point(X,Y)), in_between_south(point(X0,Y0), point(X,Y), Points).
-in_between(point(X0,Y0), point(X,Y), Points) :- aligned_west(point(X0,Y0), point(X,Y)), in_between_west(point(X0,Y0), point(X,Y), Points).
-in_between(point(X0,Y0), point(X,Y), Points) :- aligned_east(point(X0,Y0), point(X,Y)), in_between_east(point(X0,Y0), point(X,Y), Points).
-in_between(point(X0,Y0), point(X,Y), Points) :- aligned_north_east(point(X0,Y0), point(X,Y)), in_between_north_east(point(X0,Y0), point(X,Y), Points).
-in_between(point(X0,Y0), point(X,Y), Points) :- aligned_north_west(point(X0,Y0), point(X,Y)), in_between_north_west(point(X0,Y0), point(X,Y), Points).
-in_between(point(X0,Y0), point(X,Y), Points) :- aligned_south_east(point(X0,Y0), point(X,Y)), in_between_south_east(point(X0,Y0), point(X,Y), Points).
-in_between(point(X0,Y0), point(X,Y), Points) :- aligned_south_west(point(X0,Y0), point(X,Y)), in_between_south_west(point(X0,Y0), point(X,Y), Points).  
-
-
-%% NB: the following predicates must be used anly if the two points are aligned in the respective direction!
 
 %in_between_north(+point(X0,Y0), +point(X,Y), -Points)
-in_between_north(point(X0,Y0), point(X0,Y), []) :- Y is Y0 + 1, !.  % red cut
-in_between_north(point(X0,Y0), point(X0,Y), [point(X0,Yi) | Other_points]) :- 
-  %aligned_north(point(X0,Y0), point(X,Y)),  % commented out for efficiency, see the NB above
-  Yi is Y0 + 1,
+in_between_north(point(X0,Y0), point(X0,Y), [point(X0,Yi)]) :- Yi is Y0 + 1, Yi is Y - 1, !.  % green cut
+in_between_north(point(X0,Y0), point(X0,Y), [point(X0,Yi) | Other_points]) :- Yi is Y0 + 1, Yi =< Y,
   in_between_north(point(X0,Yi), point(X0,Y), Other_points).
+
+%in_between_south(+point(X0,Y0), +point(X,Y), -Points)
+in_between_south(point(X0,Y0), point(X0,Y), [point(X0,Yi)]) :- Yi is Y0 - 1, Yi is Y + 1, !.  % green cut
+in_between_south(point(X0,Y0), point(X0,Y), [point(X0,Yi) | Other_points]) :- Yi is Y0 - 1, Yi =< Y,
+  in_between_south(point(X0,Yi), point(X0,Y), Other_points).
 
 
 
