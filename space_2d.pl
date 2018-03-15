@@ -42,7 +42,7 @@ projection_west(point(X0,_), point(X,_), Projection) :- nonvar(X0), nonvar(Proje
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% NB: By design, "Steps" > 0.
-%      At least one between "P" and "Steps" must be istantiated.
+%%     At least one between "P" and "Steps" must be istantiated.
 
 
 %steps_north(+P0, ?P, ?Steps)  
