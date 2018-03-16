@@ -32,13 +32,13 @@ white(Piece) :- member(Piece, [wp,wr,wn,wb,wq,wk]).
 black(Piece) :- member(Piece, [bp,br,bn,bb,bq,bk]).
 
 
-%enemies(+A, +B)
-enemies(A, B) :- white(A), black(B).
-enemies(A, B) :- black(A), white(B).
+%enemy(+Piece)
+enemy(Piece) :- turn(white), black(Piece), !.  % green cut
+enemy(Piece) :- turn(black), white(Piece).
 
-%allies(+A, +B)
-allies(A, B) :- white(A), white(B).
-allies(A, B) :- black(A), black(B).
+%ally(+Piece)
+ally(Piece) :- turn(white), white(Piece), !.  % green cut
+ally(Piece) :- turn(black), black(Piece).
 
 
 
@@ -47,11 +47,8 @@ allies(A, B) :- black(A), black(B).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
 %legal_pawn_move(+P0, +P))
 legal_pawn_move(P0, P) :-
-  cell(P0, Piece),
-  pawn(Piece),
   (%% A pawn can move one step forward to an empty cell.
     steps_ahead(P0, P, 1), cell(P, e)
   );
@@ -61,34 +58,60 @@ legal_pawn_move(P0, P) :-
     steps_ahead(P0, P, 2), cell(P, e)
   );
   (%% A pawn can move one cell diagonally ahead if there's an enemy piece in the cell of arrival.
-    steps_ahead_right(P0, P, Content),
-    enemies(Piece, Content)
+    steps_ahead_right(P0, P, 1), cell(P, Content),
+    enemy(Content)
   ).
 
-
+%% A knight can move with an "L" pattern to an empty cell or to a cell containing an enemy piece.
 %legal_kniht_move(+P0, +P)
-legal_knight_move(P0, P) :-  %% A knight can move with an "L" pattern to an empty cell or to a cell containing an enemy piece.
-  cell(P0, Piece),
-  knight(Piece),
+legal_knight_move(P0, P) :-
   l_pattern(P0, P),
   cell(P, Content),
   (Content = e; enemies(Piece, Content)).
 
-
-%legal_bishop_move(+P0, ?P)
-legal_bishop_move(P0, P) :-  %% A bishop can move diagonlly to an empty cell or to a cell containing an enemy piece. 
-  cell(P0, Piece),           %% All the cells in between must be empty.
-  bishop(Piece),
+%% A bishop can move diagonlly to an empty cell or to a cell containing an enemy piece.
+%% All the cells between the starting point (P0) and the ending point (P) must be empty.
+%legal_bishop_move(+P0, +P)
+legal_bishop_move(P0, P) :-       
   aligned_diagonally(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, Content),
   (Content = e; enemies(Piece, Content)).
 
+%% A rook can move horizontally or vertically to an empty cell or to a cell containing an enemy piece.
+%% All the cells between the starting point (P0) and the ending point (P) must be empty.
+%legal_rook_move(+P0, +P)
+legal_rook_move(P0, P) :- 
+  aligned_axis(P0, P),
+  ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
+  cell(P, Content),
+  (Content = e; enemies(Piece, Content)).
 
-%legal_move(+P0, ?P))
-legal_move(P0, P) :- legal_pawn_move(P0, P), !.    % green cut
-legal_move(P0, P) :- legal_knight_move(P0, P), !,  % green cut
-legal_move(P0, P) :- legal_bishop_move(P0, P).
+%% The queen can move horizontally, vertically or diagonally to an empty cell or to a cell containing an enemy piece. 
+%% All the cells between the starting point (P0) and the ending point (P) must be empty.
+%legal_queen_move(+P0, +P)
+legal_queen_move(P0, P) :- legal_bishop_move(P0, P), !.  % green cut
+legal_queen_move(P0, P) :- legal_rook_move(P0, P).
+
+%% The king can move to all the cells adjacent around him, but only if they are empty or contain an enemy.
+%legal_king_move(+P0, +P)
+legal_king_move(P0, P) :-
+  adjacent(P0, P),
+  cell(P, Content),
+  (Content = e; enemies(Piece, Content)).
+
+
+%legal_move(+P0, +P))
+legal_move(P0, P) :- 
+  cell(P0, Piece),
+  (
+    (pawn(Piece),   legal_pawn_move(P0, P));
+    (knight(Piece), legal_knight_move(P0, P));
+    (bishop(Piece), legal_bishop_move(P0, P));
+    (rook(Piece),   legal_rook_move(P0, P));
+    (queen(Piece),  legal_queen_move(P0, P));
+    (king(Piece),   legal_king_move(P0, P))
+  ).
 
 
 
@@ -104,7 +127,7 @@ must_promote(Piece, P) :-  % Pawns must promote when reaching the last row.
 
 %legal_promotion(+Piece, +To_piece)
 legal_promotion(Piece, To_piece) :-  % Promotion can be to a queen, a knight, a rook or a bishop of the same team.
-  allies(Piece, To_piece),
+  ally(To_piece),
   (rook(To_piece); knight(To_piece); bishop(To_piece); queen(To_piece)).
 
 
@@ -121,6 +144,7 @@ starting_row(Piece, Row) :-
     (pawn(Piece), Row = 7);
     (not(pawn(Piece)), Row = 8)
   ).
+
 
 %last_row(?Row)
 last_row(Row) :- turn(white), Row = 8.  %% The 8th row is the last one for the white player.
