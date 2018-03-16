@@ -67,25 +67,29 @@ legal_pawn_move(P0, P) :-
 
 
 %legal_kniht_move(+P0, +P)
-legal_knight_move(P0, P) :-  %% A knight can move with an "L" pattern to an empty cell or a cell containing an enemy piece.
+legal_knight_move(P0, P) :-  %% A knight can move with an "L" pattern to an empty cell or to a cell containing an enemy piece.
   cell(P0, Piece),
   knight(Piece),
   l_pattern(P0, P),
   cell(P, Content),
-  (Content = e; enemies(Content)).
+  (Content = e; enemies(Piece, Content)).
 
 
-%legal_bishop_move(+X0, +Y0, ?X, ?Y)
-%legal_bishop_move(X0, Y0, X, Y) :-
-%  cell(X0, Y0, A), cell(X, Y, B),
-%  bishop(A),
-%  (cell(X, Y, e); enemies(A, B)),
-%  aligned_diagonally(point(X0, Y0), point(X, Y)).
+%legal_bishop_move(+P0, ?P)
+legal_bishop_move(P0, P) :-  %% A bishop can move diagonlly to an empty cell or to a cell containing an enemy piece. 
+  cell(P0, Piece),           %% All the cells in between must be empty.
+  bishop(Piece),
+  aligned_diagonally(P0, P),
+  ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
+  cell(P, Content),
+  (Content = e; enemies(Piece, Content)).
 
 
 %legal_move(+P0, ?P))
-legal_move(P0, P) :- legal_pawn_move(P0, P), !.  % green cut
-legal_move(P0, P) :- legal_knight_move(P0, P).
+legal_move(P0, P) :- legal_pawn_move(P0, P), !.    % green cut
+legal_move(P0, P) :- legal_knight_move(P0, P), !,  % green cut
+legal_move(P0, P) :- legal_bishop_move(P0, P).
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -170,9 +174,11 @@ steps_behind_left(P0, P, Steps) :- turn(white), steps_south_west(P0, P, Steps), 
 steps_behind_left(P0, P, Steps) :- turn(black), steps_north_east(P0, P, Steps).
 
 
-%empty_cells([]).
-%empty_cells([cell(_, _, e) | Tail]) :- empty_cells(Tail).
-
+%empty_cells(+[Points]).
+empty_cells([]).
+empty_cells([Point | Points]) :- 
+  cell(Point, e),
+  empty_cells(Points).
 
 
 
@@ -188,7 +194,7 @@ cell(point(1,6), e) . cell(point(2,6), e) . cell(point(3,6), e) . cell(point(4,6
 cell(point(1,5), e) . cell(point(2,5), e) . cell(point(3,5), e) . cell(point(4,5), e) . cell(point(5,5), e) . cell(point(6,5), e) . cell(point(7,5), e) . cell(point(8,5), e) .
 cell(point(1,4), e) . cell(point(2,4), e) . cell(point(3,4), e) . cell(point(4,4), e) . cell(point(5,4), e) . cell(point(6,4), e) . cell(point(7,4), e) . cell(point(8,4), e) .
 cell(point(1,3), e) . cell(point(2,3), e) . cell(point(3,3), e) . cell(point(4,3), e) . cell(point(5,3), e) . cell(point(6,3), e) . cell(point(7,3), e) . cell(point(8,3), e) .
-cell(point(1,2), wp). cell(point(2,2), wp). cell(point(3,2), wp). cell(point(4,2), wp). cell(point(5,2), wp). cell(point(6,2), wp). cell(point(7,2), wp). cell(point(8,2), wp).
+cell(point(1,2), wp). cell(point(2,2), e). cell(point(3,2), wp). cell(point(4,2), e). cell(point(5,2), wp). cell(point(6,2), wp). cell(point(7,2), wp). cell(point(8,2), wp).
 cell(point(1,1), wr). cell(point(2,1), wn). cell(point(3,1), wb). cell(point(4,1), wq). cell(point(5,1), wk). cell(point(6,1), wb). cell(point(7,1), wn). cell(point(8,1), wr).
 
 % memberchk(+Term, ?List) -> used just to check if an element is in a list, famous alternative to member(?Term, ?List). 
