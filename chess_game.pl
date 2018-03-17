@@ -43,7 +43,6 @@ change_turn :-
 
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                   Moves                                    %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -51,6 +50,7 @@ change_turn :-
 
 %move(+Piece, point(+X0,+Y0), point(+X,+Y))
 move(Piece, X0, Y0, X, Y) :-
+  integrity_check,
   move_is_legal(Piece, X0, Y0, X, Y), !, % green cut i guess
   not(must_promote(Piece, X, Y)),  % when reaching the last row, a pawn cannot move without promotion!
   actually_move(Piece, X0, Y0, X, Y),
@@ -58,6 +58,7 @@ move(Piece, X0, Y0, X, Y) :-
 
 %move_pawn_and_promote(+To_piece, point(+X0,+Y0), point(+X,+Y))
 move_pawn_and_promote(To_piece, X0, Y0, X, Y) :-
+  integrity_check,
   cell(X0, Y0, Piece),
   pawn(Piece),
   move_is_legal(Piece, X0, Y0, X, Y)),
@@ -68,6 +69,17 @@ actually_move(Piece, X0, Y0, X, Y) :-
   retract(cell(X0, Y0, _)), assert(cell(X0, Y0, e)),
   retract(cell(X, Y, _)), assert(cell(X, Y, Piece)).
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                               Maybe ideas                                  %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+integrity_check :-
+  (
+    ( turn(white), player(white), not(turn(black)), not(player(black)) );
+    ( turn(black), player(black), not(turn(white)), not(player(black)) )
+  ).
 
   
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
