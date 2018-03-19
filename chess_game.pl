@@ -20,12 +20,7 @@ cell(1, 1, wr). cell(2, 1, wn). cell(3, 1, wb). cell(4, 1, wq). cell(5, 1, wk). 
 %turn(?COLOR)
 turn(white).
 
-%change_turn/0
-change_turn :-
-  next_turn(Current, Next),
-  retract(turn(Current)),
-  assert(turn(Next)),
-  !.  % red cut!
+
 
 
 
