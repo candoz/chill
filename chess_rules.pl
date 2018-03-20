@@ -86,20 +86,21 @@ under_check(Color) :-
 legal_move(P0, P) :-
   cell(P0, P0_content),
   pawn(P0_content),
-  print("hello"),
   team(P0_content, Color),
-  (%% A pawn can move one step forward to an empty cell.
-    steps_forward(P0, P, 1, Color), cell(P, e)
-  );
-  (%% A pawn can move two cells ahead if the pawn hasn't moved yet and those two cells are both empty.
-    steps_forward(P0, P, 2, Color), cell(P, e),
-    steps_forward(P0, P1, 1, Color), cell(P1, e),
-    history(HISTORY),
-    first_move(P0, HISTORY)
-  );
-  (%% A pawn can move one cell diagonally ahead if there's an enemy piece in the cell of arrival.
-    (steps_forward_right(P0, P, 1, Color), cell(P, P_content) ; steps_forward_left(P0, P, 1, Color), cell(P, P_content)),
-    enemies(P0_content, P_content)
+  (
+    (%% A pawn can move one step forward to an empty cell.
+      steps_forward(P0, P, 1, Color), cell(P, e)
+    );
+    (%% A pawn can move two cells ahead if the pawn hasn't moved yet and those two cells are both empty.
+      steps_forward(P0, P, 2, Color), cell(P, e),
+      steps_forward(P0, P1, 1, Color), cell(P1, e),
+      history(HISTORY),
+      first_move(P0, HISTORY)
+    );
+    (%% A pawn can move one cell diagonally ahead if there's an enemy piece in the cell of arrival.
+      (steps_forward_right(P0, P, 1, Color), cell(P, P_content) ; steps_forward_left(P0, P, 1, Color), cell(P, P_content)),
+      enemies(P0_content, P_content)
+    )
   ).
 
 
@@ -110,7 +111,6 @@ legal_move(P0, P) :-
 legal_move(P0, P) :-
   cell(P0, P0_content),
   knight(P0_content),
-  print("hello"),
   l_pattern(P0, P),
   cell(P, P_content),
   (P_content = e; enemies(P0_content, P_content)).
@@ -123,8 +123,7 @@ legal_move(P0, P) :-
 %legal_move(+P0, +P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
-  bishop(P0_content),
-  print("hello"),   
+  bishop(P0_content),   
   aligned_diagonally(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, P_content),
@@ -139,7 +138,6 @@ legal_move(P0, P) :-
 legal_move(P0, P) :-
   cell(P0, P0_content),
   rook(P0_content),
-  print("hello"),
   aligned_axis(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, P_content),
@@ -154,7 +152,6 @@ legal_move(P0, P) :-
 legal_move(P0, P) :-
   cell(P0, P0_content),
   queen(P0_content),
-  print("hello"),
   aligned(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, P_content),
@@ -168,11 +165,12 @@ legal_move(P0, P) :-
 legal_move(P0, P) :-
   cell(P0, P0_content),
   king(P0_content),
-  print("hello"),
   adjacent(P0, P),
   cell(P, P_content),
   (P_content = e; enemies(P0_content, P_content)).
 
+
+%%%%%%%% SPECIAL MOVES: CASTLING %%%%%%%%
 
 %% Arrocco corto
 %legal_short_castle :-
@@ -341,7 +339,7 @@ cell(point(1,6), e) . cell(point(2,6), e) . cell(point(3,6), e) . cell(point(4,6
 cell(point(1,5), e) . cell(point(2,5), e) . cell(point(3,5), e) . cell(point(4,5), e) . cell(point(5,5), e) . cell(point(6,5), e) . cell(point(7,5), e) . cell(point(8,5), e) .
 cell(point(1,4), e) . cell(point(2,4), e) . cell(point(3,4), e) . cell(point(4,4), e) . cell(point(5,4), e) . cell(point(6,4), e) . cell(point(7,4), e) . cell(point(8,4), e) .
 cell(point(1,3), e) . cell(point(2,3), e) . cell(point(3,3), e) . cell(point(4,3), e) . cell(point(5,3), e) . cell(point(6,3), e) . cell(point(7,3), e) . cell(point(8,3), e) .
-cell(point(1,2), wp). cell(point(2,2), e). cell(point(3,2), wp). cell(point(4,2), kkk). cell(point(5,2), wp). cell(point(6,2), wp). cell(point(7,2), wp). cell(point(8,2), wp).
+cell(point(1,2), wp). cell(point(2,2), e). cell(point(3,2), wp). cell(point(4,2), e). cell(point(5,2), wp). cell(point(6,2), wp). cell(point(7,2), wp). cell(point(8,2), wp).
 cell(point(1,1), wr). cell(point(2,1), wn). cell(point(3,1), wb). cell(point(4,1), wq). cell(point(5,1), wk). cell(point(6,1), wb). cell(point(7,1), wn). cell(point(8,1), wr).
 
 
