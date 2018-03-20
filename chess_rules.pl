@@ -29,52 +29,6 @@ enemies(Piece, Other_piece) :-
   not(Color = Other_color).
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                          General chess rules                               %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%% There are two teams (black and white) that alternate turns.
-%next_turn(?Previous, ?Next)
-next_turn(white, black).
-next_turn(black, white).
-
-%change_turn/0
-change_turn :-
-  next_turn(Current, Next),
-  retract(turn(Current)),
-  assert(turn(Next)),
-  !.  % red cut!
-
-%under_enemy_attack(+P)
-under_enemy_attack(P) :- 
-  cell(Pi, _),
-  legal_move(Pi, P),
-  print(Pi),
-  !.  % green cut
-
-
-%under_check(+Color)
-under_check(Color) :-
-  king(Piece),
-  team(Piece, Color),
-  cell(P, Piece),
-  under_enemy_attack(P),
-  !.  % green cut
-
-%under_checkmate(+Color) :-
-%not_under_checkmate(Color) :-
-%  under_check(Color),
-%  next_turn(Color, Enemy_color),
-%  cell(P, P_content), (P_content = e; team(P_content, Enemy_color)),
-%  ally(Allied_piece, Color),
-%  cell(P0, Allied_piece),
-%  move(P0, P),
-%  (
-%    not(under_check(Color)), undo_previous_move, !);
-%    under_check(Color), undo_previous_move, 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                      Legal moves (for every piece)                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,7 +36,7 @@ under_check(Color) :-
 
 %%%%%%%% PAWN %%%%%%%%
 
-%legal_move(+P0, +P))
+%legal_move(+P0, ?P))
 legal_move(P0, P) :-
   cell(P0, P0_content),
   pawn(P0_content),
@@ -107,7 +61,7 @@ legal_move(P0, P) :-
 %%%%%%%% KNIGHT %%%%%%%%
 
 %% A knight can move with an "L" pattern to an empty cell or to a cell containing an enemy piece.
-%legal_move(+P0, +P)
+%legal_move(+P0, ?P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
   knight(P0_content),
@@ -120,10 +74,11 @@ legal_move(P0, P) :-
 
 %% A bishop can move diagonlly to an empty cell or to a cell containing an enemy piece.
 %% All the cells between the starting point (P0) and the ending point (P) must be empty.
-%legal_move(+P0, +P)
+%legal_move(+P0, ?P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
-  bishop(P0_content),   
+  bishop(P0_content),
+  cell(P, _),  % mandatory to make the second parameter of legal_move/2 optional
   aligned_diagonally(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, P_content),
@@ -134,10 +89,11 @@ legal_move(P0, P) :-
 
 %% A rook can move horizontally or vertically to an empty cell or to a cell containing an enemy piece.
 %% All the cells between the starting point (P0) and the ending point (P) must be empty.
-%legal_move(+P0, +P)
+%legal_move(+P0, ?P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
   rook(P0_content),
+  cell(P, _),  % mandatory to make the second parameter of legal_move/2 optional
   aligned_axis(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, P_content),
@@ -148,10 +104,11 @@ legal_move(P0, P) :-
 
 %% The queen can move horizontally, vertically or diagonally to an empty cell or to a cell containing an enemy piece. 
 %% All the cells between the starting point (P0) and the ending point (P) must be empty.
-%legal_move(+P0, +P)
+%legal_move(+P0, ?P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
   queen(P0_content),
+  cell(P, _),  % mandatory to make the second parameter of legal_move/2 optional
   aligned(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, P_content),
@@ -161,7 +118,7 @@ legal_move(P0, P) :-
 %%%%%%%% KING %%%%%%%%
 
 %% The king can move to all the cells adjacent around him, but only if they are empty or contain an enemy.
-%legal_move(+P0, +P)
+%legal_move(+P0, ?P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
   king(P0_content),
@@ -182,9 +139,94 @@ legal_move(P0, P) :-
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                          General chess rules                               %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% There are two teams (black and white) that alternate turns.
+%next_turn(?Previous, ?Next)
+next_turn(white, black).
+next_turn(black, white).
+
+change_turn :-
+  next_turn(Current, Next),
+  retract(turn(Current)),
+  assert(turn(Next)),
+  !.  % red cut!
+
+%under_enemy_attack(+P)
+under_enemy_attack(P) :- 
+  cell(Pi, _),
+  legal_move(Pi, P),
+  print(Pi),
+  !.  % green cut
+
+
+%under_check(+Color)
+under_check(Color) :-
+  king(Piece),
+  team(Piece, Color),
+  cell(P, Piece),
+  under_enemy_attack(P),
+  !.  % green cut
+
+
+% can_move(+Color)
+can_move(Color) :-
+  team(Allied_piece, Color),
+  cell(P0, Allied_piece),
+  legal_move(P0, P),
+  move(Allied_piece, P0, P),  % modifying the knowledge base! (and changing turn...)
+  (
+    (
+      not(under_check(Color)),
+      undo_last_move,  % modifying the knowledge base! (and changing turn...)
+      true 
+    );
+    (
+      under_check(Color),  % necessary ?
+      undo_last_move,  % modifying the knowledge base! (and changing turn...)
+      fail
+    )
+  )
+  , !.  % green cut (not used in the can_move/3)
+
+% can_move(+Color, -P0, -P)
+can_move(Color, P0, P) :-
+  team(Allied_piece, Color),
+  cell(P0, Allied_piece),
+  legal_move(P0, P),
+  move(Allied_piece, P0, P),  % modifying the knowledge base! (and changing turn...)
+  (
+    (
+      not(under_check(Color)),
+      undo_last_move,  % modifying the knowledge base! (and changing turn...)
+      true
+    );
+    (
+      under_check(Color),  % necessary ?
+      undo_last_move,  % modifying the knowledge base! (and changing turn...)
+      fail
+    )
+  ).
+
+
+
+
+under_checkmate(Color) :-
+  under_check(Color),
+  not(can_move(Color)).
+  
+
+under_stall(Color) :-
+  not(under_check(Color)),
+  not(can_move(Color)).
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                                   Moves                                    %%
+%%           Actual moving and updating the board representation              %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -236,7 +278,8 @@ undo_last_move :-
   retract(history([(Last_retracted_list, Last_asserted_list) | Older_history])),
   retract_these(Last_asserted_list),
   assert_these(Last_retracted_list),
-  assert(history(Older_history)).
+  assert(history(Older_history)),
+  change_turn.
 
 
 first_move(P, []).
@@ -334,13 +377,13 @@ empty_cells([Point | Points]) :-
 turn(white).
 
 cell(point(1,8), br). cell(point(2,8), bn). cell(point(3,8), bb). cell(point(4,8), bq). cell(point(5,8), bk). cell(point(6,8), bb). cell(point(7,8), bn). cell(point(8,8), br).
-cell(point(1,7), e). cell(point(2,7), bp). cell(point(3,7), bp). cell(point(4,7), bp). cell(point(5,7), bp). cell(point(6,7), bp). cell(point(7,7), bp). cell(point(8,7), bp).
+cell(point(1,7), e). cell(point(2,7), br). cell(point(3,7), bp). cell(point(4,7), bp). cell(point(5,7), bp). cell(point(6,7), bp). cell(point(7,7), bp). cell(point(8,7), bp).
 cell(point(1,6), e) . cell(point(2,6), e) . cell(point(3,6), e) . cell(point(4,6), e) . cell(point(5,6), e) . cell(point(6,6), e) . cell(point(7,6), e) . cell(point(8,6), e) .
 cell(point(1,5), e) . cell(point(2,5), e) . cell(point(3,5), e) . cell(point(4,5), e) . cell(point(5,5), e) . cell(point(6,5), e) . cell(point(7,5), e) . cell(point(8,5), e) .
-cell(point(1,4), e) . cell(point(2,4), e) . cell(point(3,4), e) . cell(point(4,4), e) . cell(point(5,4), e) . cell(point(6,4), e) . cell(point(7,4), e) . cell(point(8,4), e) .
-cell(point(1,3), e) . cell(point(2,3), e) . cell(point(3,3), e) . cell(point(4,3), e) . cell(point(5,3), e) . cell(point(6,3), e) . cell(point(7,3), e) . cell(point(8,3), e) .
-cell(point(1,2), wp). cell(point(2,2), e). cell(point(3,2), wp). cell(point(4,2), e). cell(point(5,2), wp). cell(point(6,2), wp). cell(point(7,2), wp). cell(point(8,2), wp).
-cell(point(1,1), wr). cell(point(2,1), wn). cell(point(3,1), wb). cell(point(4,1), wq). cell(point(5,1), wk). cell(point(6,1), wb). cell(point(7,1), wn). cell(point(8,1), wr).
+cell(point(1,4), e) . cell(point(2,4), e) . cell(point(3,4), e) . cell(point(4,4), bn) . cell(point(5,4), e) . cell(point(6,4), e) . cell(point(7,4), e) . cell(point(8,4), e) .
+cell(point(1,3), br) . cell(point(2,3), e) . cell(point(3,3), e) . cell(point(4,3), wp) . cell(point(5,3), e) . cell(point(6,3), bn) . cell(point(7,3), e) . cell(point(8,3), e) .
+cell(point(1,2), wp). cell(point(2,2), e). cell(point(3,2), e). cell(point(4,2), wp). cell(point(5,2), e). cell(point(6,2), wp). cell(point(7,2), e). cell(point(8,2), e).
+cell(point(1,1), wk). cell(point(2,1), e). cell(point(3,1), br). cell(point(4,1), e). cell(point(5,1), e). cell(point(6,1), e). cell(point(7,1), e). cell(point(8,1), e).
 
 
 
