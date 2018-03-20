@@ -13,18 +13,17 @@ queen(wq). queen(bq).    % white and black Queens
 king(wk). king(bk).      % white and balck Kings
 
 
-%team(?Piece, ?Color)
 team(Piece, Color) :- member(Piece, [wp,wr,wn,wb,wq,wk]), Color = white.
 team(Piece, Color) :- member(Piece, [bp,br,bn,bb,bq,bk]), Color = black.
 
 
-%allies(+Piece, +Ohter_piece)
-allies(Piece, Ohter_piece) :- 
+%allies(+Piece, +Other_piece)
+allies(Piece, Other_piece) :- 
   team(Piece, Color),
   team(Other_piece, Color).
 
-%enemies(+Piece, +Ohter_piece)
-enemies(Piece, Ohter_piece) :- 
+%enemies(+Piece, +Other_piece)
+enemies(Piece, Other_piece) :- 
   team(Piece, Color),
   team(Other_piece, Other_color),
   not(Color = Other_color).
@@ -50,10 +49,10 @@ change_turn :-
 
 %under_enemy_attack(+P)
 under_enemy_attack(P) :- 
-  cell(P, Piece),
-  cell(Pi, Other_Piece),
-  enemies(Piece, Other_Piece),
-  legal_move(Pi, P).
+  cell(Pi, _),
+  legal_move(Pi, P),
+  print(Pi),
+  !.  % green cut
 
 
 %under_check(+Color)
@@ -61,7 +60,8 @@ under_check(Color) :-
   king(Piece),
   team(Piece, Color),
   cell(P, Piece),
-  under_enemy_attack(P).
+  under_enemy_attack(P),
+  !.  % green cut
 
 %under_checkmate(+Color) :-
 %not_under_checkmate(Color) :-
@@ -86,17 +86,19 @@ under_check(Color) :-
 legal_move(P0, P) :-
   cell(P0, P0_content),
   pawn(P0_content),
+  print("hello"),
   team(P0_content, Color),
   (%% A pawn can move one step forward to an empty cell.
-    steps_ahead(P0, P, 1, Color), cell(P, e)
+    steps_forward(P0, P, 1, Color), cell(P, e)
   );
-  (%% A pawn can move two cells ahead if the pawn is at its starting row and those two cells are both empty.
-    starting_row(P0_content, P),
-    steps_ahead(P0, P, 1, Color), cell(P, e),
-    steps_ahead(P0, P, 2, Color), cell(P, e)
+  (%% A pawn can move two cells ahead if the pawn hasn't moved yet and those two cells are both empty.
+    steps_forward(P0, P, 2, Color), cell(P, e),
+    steps_forward(P0, P1, 1, Color), cell(P1, e),
+    history(HISTORY),
+    first_move(P0, HISTORY)
   );
   (%% A pawn can move one cell diagonally ahead if there's an enemy piece in the cell of arrival.
-    (steps_ahead_right(P0, P, 1, Color), cell(P, P_content) ; steps_ahead_left(P0, P, 1, Color), cell(P, P_content)),
+    (steps_forward_right(P0, P, 1, Color), cell(P, P_content) ; steps_forward_left(P0, P, 1, Color), cell(P, P_content)),
     enemies(P0_content, P_content)
   ).
 
@@ -108,6 +110,7 @@ legal_move(P0, P) :-
 legal_move(P0, P) :-
   cell(P0, P0_content),
   knight(P0_content),
+  print("hello"),
   l_pattern(P0, P),
   cell(P, P_content),
   (P_content = e; enemies(P0_content, P_content)).
@@ -120,7 +123,8 @@ legal_move(P0, P) :-
 %legal_move(+P0, +P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
-  bishop(P0_content),     
+  bishop(P0_content),
+  print("hello"),   
   aligned_diagonally(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, P_content),
@@ -134,7 +138,8 @@ legal_move(P0, P) :-
 %legal_move(+P0, +P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
-  rook(P0_content), 
+  rook(P0_content),
+  print("hello"),
   aligned_axis(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, P_content),
@@ -148,7 +153,8 @@ legal_move(P0, P) :-
 %legal_move(+P0, +P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
-  queen(P0_content), 
+  queen(P0_content),
+  print("hello"),
   aligned(P0, P),
   ((in_between(P0, P, Points), empty_cells(Points)); not(in_between(P0, P, Points))),
   cell(P, P_content),
@@ -161,7 +167,8 @@ legal_move(P0, P) :-
 %legal_move(+P0, +P)
 legal_move(P0, P) :-
   cell(P0, P0_content),
-  king(P0_content), 
+  king(P0_content),
+  print("hello"),
   adjacent(P0, P),
   cell(P, P_content),
   (P_content = e; enemies(P0_content, P_content)).
@@ -194,35 +201,35 @@ move(Piece, P0, P) :-
 %  not(must_promote(Piece, P)),  % when reaching the last row, a pawn cannot move without promotion!
   cell(P, P_content),
   update_board(
-    [cell(P0, Piece), cell(P, e)],  % things to retract
+    [cell(P0, Piece), cell(P, P_content)],  % things to retract
     [cell(P0, e), cell(P, Piece)]           % things to assert  
   ),
   change_turn.  %!.  % green cut if everything is ok... maybe useless.
 
 %move_pawn_and_promote
-move_and_promote(Piece, Promoted_piece, P0, P) :-
-  turn(Color),
-  team(Piece, Color),
-  cell(P0, Piece),
-  legal_move(P0, P),
-  must_promote(Piece, P),
-  legal_promotion(Piece, To_piece),
-  cell(P, P_content),
-  update_board(
-    [cell(P0, Piece), cell(P, P_content)],  % things to retract
-    [cell(P0, e), cell(P, Promoted_piece)]  % things to assert  
-  ),
-  change_turn,
-  !.  % green cut if everything is ok...
+%move_and_promote(Piece, Promoted_piece, P0, P) :-
+%  turn(Color),
+%  team(Piece, Color),
+%  cell(P0, Piece),
+%  legal_move(P0, P),
+%  must_promote(Piece, P),
+%  legal_promotion(Piece, To_piece),
+%  cell(P, P_content),
+%  update_board(
+%    [cell(P0, Piece), cell(P, P_content)],  % things to retract
+%    [cell(P0, e), cell(P, Promoted_piece)]  % things to assert  
+%  ),
+%  change_turn,
+%  !.  % green cut if everything is ok...
 
 
 %%%%%%% PRIVATE FUNCTINOALITIES %%%%%%%%
 
 history([]).
 
-update_board(Retract_list, Assert_list) :-
-  retract_these(Retract_list),
-  assert_these(Assert_list),
+update_board(Retracts_list, Asserts_list) :-
+  retract_these(Retracts_list),
+  assert_these(Asserts_list),
   retract(history(Old_history)),
   append([(Retracts_list, Asserts_list)], Old_history, Updated_history),
   assert(history(Updated_history)).
@@ -232,6 +239,13 @@ undo_last_move :-
   retract_these(Last_asserted_list),
   assert_these(Last_retracted_list),
   assert(history(Older_history)).
+
+
+first_move(P, []).
+first_move(P, [(Last_retracted_list, Last_asserted_list) | Older_history]) :- 
+  not(member(cell(P, _), Last_retracted_list)),
+  not(member(cell(P, _), Last_asserted_list)),
+  first_move(P, Older_history).
 
 
 retract_these([]).
@@ -258,21 +272,6 @@ legal_promotion(Piece, To_piece) :-  % Promotion can be to a queen, a knight, a 
   (rook(To_piece); knight(To_piece); bishop(To_piece); queen(To_piece)).
 
 
-%starting_row(
-starting_row(Piece, point(X,Y)) :-
-  team(Piece, white),
-  (%% White pawns start from the 2nd row, all the other white pieces start from the 1st row.
-    (pawn(Piece), Y = 2);
-    (not(pawn(Piece)), Y = 1)
-  ).
-starting_row(Piece, Row) :-
-  team(Piece, black),
-  (%% Black pawns start from the 7th row, all the other black pieces start from the 8th row.
-    (pawn(Piece), Y = 7);
-    (not(pawn(Piece)), Y = 8)
-  ).
-
-
 %last_row(?Row)
 last_row(Row) :- player(white), Row = 8.  %% The 8th row is the last one for the white player.
 last_row(Row) :- player(black), Row = 1.  %% The 1st row is the last one for the black player.
@@ -288,13 +287,13 @@ last_row(Row) :- player(black), Row = 1.  %% The 1st row is the last one for the
 %%     At least one between "P" and "Steps" must be istantiated.
 
 
-%steps_ahead(
-steps_ahead(P0, P, Steps, Color) :- Color = white, steps_north(P0, P, Steps).
-steps_ahead(P0, P, Steps, Color) :- Color = black, steps_south(P0, P, Steps).
+%steps_forward(
+steps_forward(P0, P, Steps, Color) :- Color = white, steps_north(P0, P, Steps).
+steps_forward(P0, P, Steps, Color) :- Color = black, steps_south(P0, P, Steps).
 
-%steps_behind
-steps_behind(P0, P, Steps, Color) :- Color = white, steps_south(P0, P, Steps).
-steps_behind(P0, P, Steps, Color) :- Color = black, steps_north(P0, P, Steps).
+%steps_backward
+steps_backward(P0, P, Steps, Color) :- Color = white, steps_south(P0, P, Steps).
+steps_backward(P0, P, Steps, Color) :- Color = black, steps_north(P0, P, Steps).
 
 %steps_right(
 steps_right(P0, P, Steps, Color) :- Color = white, steps_east(P0, P, Steps).
@@ -305,21 +304,21 @@ steps_left(P0, P, Steps, Color) :- Color = white, steps_west(P0, P, Steps).
 steps_left(P0, P, Steps, Color) :- Color = black, steps_east(P0, P, Steps).
 
 
-%steps_ahead_right(
-steps_ahead_right(P0, P, Steps, Color) :- Color = white, steps_north_east(P0, P, Steps).
-steps_ahead_right(P0, P, Steps, Color) :- Color = black, steps_south_west(P0, P, Steps).
+%steps_forward_right(
+steps_forward_right(P0, P, Steps, Color) :- Color = white, steps_north_east(P0, P, Steps).
+steps_forward_right(P0, P, Steps, Color) :- Color = black, steps_south_west(P0, P, Steps).
 
-%steps_ahead_left(
-steps_ahead_left(P0, P, Steps, Color) :- Color = white, steps_north_west(P0, P, Steps).
-steps_ahead_left(P0, P, Steps, Color) :- Color = black, steps_south_east(P0, P, Steps).
+%steps_forward_left(
+steps_forward_left(P0, P, Steps, Color) :- Color = white, steps_north_west(P0, P, Steps).
+steps_forward_left(P0, P, Steps, Color) :- Color = black, steps_south_east(P0, P, Steps).
 
-%steps_behind_right(
-steps_behind_right(P0, P, Steps, Color) :- Color = white, steps_south_east(P0, P, Steps).
-steps_behind_right(P0, P, Steps, Color) :- Color = black, steps_north_west(P0, P, Steps).
+%steps_backward_right(
+steps_backward_right(P0, P, Steps, Color) :- Color = white, steps_south_east(P0, P, Steps).
+steps_backward_right(P0, P, Steps, Color) :- Color = black, steps_north_west(P0, P, Steps).
 
-%steps_behind_left(
-steps_behind_left(P0, P, Steps, Color) :- Color = white, steps_south_west(P0, P, Steps).
-steps_behind_left(P0, P, Steps, Color) :- Color = black, steps_north_east(P0, P, Steps).
+%steps_backward_left(
+steps_backward_left(P0, P, Steps, Color) :- Color = white, steps_south_west(P0, P, Steps).
+steps_backward_left(P0, P, Steps, Color) :- Color = black, steps_north_east(P0, P, Steps).
 
 
 %empty_cells(+[Points]).
@@ -335,7 +334,6 @@ empty_cells([Point | Points]) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 turn(white).
-player(white).
 
 cell(point(1,8), br). cell(point(2,8), bn). cell(point(3,8), bb). cell(point(4,8), bq). cell(point(5,8), bk). cell(point(6,8), bb). cell(point(7,8), bn). cell(point(8,8), br).
 cell(point(1,7), e). cell(point(2,7), bp). cell(point(3,7), bp). cell(point(4,7), bp). cell(point(5,7), bp). cell(point(6,7), bp). cell(point(7,7), bp). cell(point(8,7), bp).
@@ -343,7 +341,7 @@ cell(point(1,6), e) . cell(point(2,6), e) . cell(point(3,6), e) . cell(point(4,6
 cell(point(1,5), e) . cell(point(2,5), e) . cell(point(3,5), e) . cell(point(4,5), e) . cell(point(5,5), e) . cell(point(6,5), e) . cell(point(7,5), e) . cell(point(8,5), e) .
 cell(point(1,4), e) . cell(point(2,4), e) . cell(point(3,4), e) . cell(point(4,4), e) . cell(point(5,4), e) . cell(point(6,4), e) . cell(point(7,4), e) . cell(point(8,4), e) .
 cell(point(1,3), e) . cell(point(2,3), e) . cell(point(3,3), e) . cell(point(4,3), e) . cell(point(5,3), e) . cell(point(6,3), e) . cell(point(7,3), e) . cell(point(8,3), e) .
-cell(point(1,2), wp). cell(point(2,2), e). cell(point(3,2), wp). cell(point(4,2), e). cell(point(5,2), wp). cell(point(6,2), wp). cell(point(7,2), wp). cell(point(8,2), wp).
+cell(point(1,2), wp). cell(point(2,2), e). cell(point(3,2), wp). cell(point(4,2), kkk). cell(point(5,2), wp). cell(point(6,2), wp). cell(point(7,2), wp). cell(point(8,2), wp).
 cell(point(1,1), wr). cell(point(2,1), wn). cell(point(3,1), wb). cell(point(4,1), wq). cell(point(5,1), wk). cell(point(6,1), wb). cell(point(7,1), wn). cell(point(8,1), wr).
 
 
