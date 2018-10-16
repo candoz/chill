@@ -205,7 +205,7 @@ can_move(Color, P0, P) :-
       true
     );
     (
-      under_check(Color),  % necessary ?
+      under_check(Color),
       undo_last_move,  % modifying the knowledge base! (and changing turn...)
       fail
     )
