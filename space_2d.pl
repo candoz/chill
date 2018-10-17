@@ -252,14 +252,11 @@ adjacent(point(X0,Y0), point(X,Y)) :-
 
 %l_pattern(+point(X0,Y0), ?point(X,Y))
 l_pattern(point(X0,Y0), point(X,Y)) :-
-  (
-    (X is X0 + 2; X is X0 - 2),
-    (Y is Y0 + 1; Y is Y0 - 1)
-  );
-  (
-    (X is X0 + 1; X is X0 - 1),
-    (Y is Y0 + 2; Y is Y0 - 2)
-  ).
+  (X is X0 + 2; X is X0 - 2),
+  (Y is Y0 + 1; Y is Y0 - 1).
+l_pattern(point(X0,Y0), point(X,Y)) :-
+  (X is X0 + 1; X is X0 - 1),
+  (Y is Y0 + 2; Y is Y0 - 2).
 
 
 
