@@ -149,12 +149,12 @@ aligned_axis(P0, P) :- aligned_vertically(P0, P), !.  % green cut
 aligned_axis(P0, P) :- aligned_horizontally(P0, P).
 
 %aligned_diagonally(+P0, +P)
-aligned_diagonally(P0, P) :- aligned_main_diagonal(P0, P), !.  % green cut
-aligned_diagonally(P0, P) :- aligned_anti_diagonal(P0, P).
+aligned_diagonal(P0, P) :- aligned_main_diagonal(P0, P), !.  % green cut
+aligned_diagonal(P0, P) :- aligned_anti_diagonal(P0, P).
 
 
 %aligned(+P0, +P)
-aligned(P0, P) :- aligned_straight(P0, P), !.  % green cut
+aligned(P0, P) :- aligned_axis(P0, P), !.  % green cut
 aligned(P0, P) :- aligned_diagonal(P0, P).
 
 
