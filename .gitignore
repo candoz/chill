@@ -1,6 +1,6 @@
-# Dolphin
+# KDE Dolphin directory preferences
 .directory
 
-# MAC OS
+# macOS directory preferences
 *.DS_Store
  
