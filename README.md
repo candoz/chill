@@ -76,7 +76,7 @@ Notice how the predicates to do the moves include both the ``Piece`` to move and
 It would have been possible to create an API that omitted the ``Piece``, since it can be derived from the content of the ``cell`` relative to the point ``P0``; however, it was decided to include this redundancy in the requests to make sure that the piece you want to move is actually in ``P0`` when the request is processed.  
 
 **Note on the coordinates convention**: the position of every cell is defined by a pair of zero/based coordinates.  
-Since pieces location are usually described on a chessboard using A-H letters for the abscissa and 1-8 for the ordinate, a piece positioned in ``A3`` would be associated with ``point(0,4)`` within our reference system.
+Since pieces location are usually described on a chessboard using A-H letters for the abscissa and 1-8 for the ordinate, a piece positioned in ``A3`` would be associated with ``point(0,2)`` within our reference system.
 
 ## Things I should have done differently
 The program is somewhat slow because of the heavy use of ``Retract``/``Assert`` commands while simulating all the possible moves... in the future it would be much better and much faster to simulate possible chessboard combinations in other ways.
@@ -84,4 +84,4 @@ The program is somewhat slow because of the heavy use of ``Retract``/``Assert`` 
 ## Contribute
 Anyone that wants to contribute can contact me or make pull requests.  
 At the moment the only move not executable yet is the **en passant** because I lost interest in the project before trying to implement it.  
-Another thing that may be useful to implement is a layer that converts standard chess coordinates (eg: *A1* -> *point(0,0)*).
+Another thing that may be useful to implement is a layer that converts standard chess coordinates (eg: ``A1`` -> ``point(0,0)``).
