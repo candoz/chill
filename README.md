@@ -13,17 +13,17 @@ It's known that there are better languages for this kind of application, but I f
 
 
 ## How to play: an example
-TODO.
+*TODO*.
 
 
 ## API Reference
 Useful queries for the interaction with the chessboard are listed below: the user can either request the status of the game, get the possible moves for any of its pieces, and actually moving them.  
 
 - **turn(-Color)**  
-  Indicates the current turn: *Color* can be ``black`` or ``white``.  
+  Indicates the current turn: ``Color`` can be ``black`` or ``white``.  
 
 - **result(-R)**  
-  Asks for the current game status: *R* can be ``white_won`` or ``black_won`` (by checkmate), ``draw`` (by stalemate), ``white_in_check``, ``black_in_check``, or ``nothing``.  
+  Asks for the current game status: ``R`` can be ``white_won`` or ``black_won`` (by checkmate), ``draw`` (by stalemate), ``white_in_check``, ``black_in_check``, or ``nothing``.  
 
 - **chessboard(-Cells_list)**  
   Retrieves all the chessboard cells in a list, following the format ``cell(point(X,Y),Piece)`` for every item of the list.  
@@ -46,12 +46,12 @@ Useful queries for the interaction with the chessboard are listed below: the use
   List items are presented in the compact format ``[X,Y]``.
 
 - **do_move(+Piece, +P0, +P)**  
-  Move the *Piece*, if possible, from ``P0`` to ``P``, where both ``P0`` and ``P`` are represented as ``point(X,Y)``.  
+  Move the ``Piece``, if possible, from ``P0`` to ``P``, where both ``P0`` and ``P`` are represented as ``point(X,Y)``.  
   As a consequence of this move, the board will be updated and the turn will be changed.  
   Use this predicate for every move except for: promotions, short castling and long castling.
 
 - **do_move_and_promote(+Piece, +P0, +P, +Promoted_piece)**  
-  Move the *Piece*, if possible, from ``P0`` to ``P`` and then promote to the ``Promoted_piece``.  
+  Move the ``Piece``, if possible, from ``P0`` to ``P`` and then promote to the ``Promoted_piece``.  
   Also in this case both ``P0`` and ``P`` must be represented as ``point(X,Y)``.  
   As a consequence of this move, the board will be updated and the turn will be changed.  
   Use this predicate only when a ``pawn`` is reaching the final row and, therefore, must promote.
@@ -65,12 +65,12 @@ Useful queries for the interaction with the chessboard are listed below: the use
   As a consequence, the position of both the king and the corresponding rook will be updated on the board, and the turn will be changed.  
 
 Chess pieces are represented by a two-letter code, where the first one represents its color and the second one its role:
-- ``wp`` and ``bp`` for White and Black Pawns
-- ``wk`` and ``bk`` for White and Black Kings
-- ``wq`` and ``bq`` for White and Black Queens
-- ``wn`` and ``bn`` for White and Black kNights
-- ``wb`` and ``bb`` for White and Black Bishops
-- ``wr`` and ``br`` for White and Black Rooks
+- ``wp`` and ``bp`` for White and Black **Pawns**
+- ``wk`` and ``bk`` for White and Black **Kings**
+- ``wq`` and ``bq`` for White and Black **Queens**
+- ``wn`` and ``bn`` for White and Black **kNights**
+- ``wb`` and ``bb`` for White and Black **Bishops**
+- ``wr`` and ``br`` for White and Black **Rooks**
 
 Notice how the predicates to do the moves include both the ``Piece`` to move and its starting position ``P0``.  
 It would have been possible to create an API that omitted the ``Piece``, since it can be derived from the content of the ``cell`` relative to the point ``P0``; however, it was decided to include this redundancy in the requests to make sure that the piece you want to move is actually in ``P0`` when the request is processed.  
